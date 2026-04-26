@@ -28,6 +28,7 @@ export interface Env {
 // ── CORS許可オリジン ──────────────────────────────────
 const ALLOWED_ORIGINS = [
   'https://aireply.pages.dev',
+  'https://aireply.aidbase11.pages.dev', // Cloudflare Pagesの実際のURL（確定後に更新）
   'http://localhost:8788',
   'http://localhost:5500',
 ];

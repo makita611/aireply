@@ -2,7 +2,7 @@
 const BASE_URL =
   location.hostname === 'localhost' || location.hostname === '127.0.0.1'
     ? 'http://localhost:8787'
-    : 'https://aireply.workers.dev'; // デプロイ後に実際のURLへ変更
+    : 'https://aireply.aidbase11.workers.dev';
 
 /**
  * JWTをヘッダーに自動付与するfetchラッパー
