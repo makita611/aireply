@@ -27,14 +27,21 @@ export interface Env {
 
 // ── CORS許可オリジン ──────────────────────────────────
 const ALLOWED_ORIGINS = [
-  'https://aireply.pages.dev',
-  'https://aireply.aidbase11.pages.dev', // Cloudflare Pagesの実際のURL（確定後に更新）
+  'https://aireply-eqc.pages.dev',
   'http://localhost:8788',
   'http://localhost:5500',
 ];
 
+function isAllowedOrigin(origin: string | null): boolean {
+  if (!origin) return false;
+  if (ALLOWED_ORIGINS.includes(origin)) return true;
+  // デプロイごとのハッシュ付きURLも許可（例: a7b805d4.aireply-eqc.pages.dev）
+  if (origin.endsWith('.aireply-eqc.pages.dev')) return true;
+  return false;
+}
+
 function corsHeaders(origin: string | null): Record<string, string> {
-  const allowed = origin && ALLOWED_ORIGINS.includes(origin) ? origin : ALLOWED_ORIGINS[0];
+  const allowed = isAllowedOrigin(origin) ? origin! : ALLOWED_ORIGINS[0];
   return {
     'Access-Control-Allow-Origin': allowed,
     'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, OPTIONS',
