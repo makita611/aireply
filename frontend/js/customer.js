@@ -43,24 +43,32 @@ async function loadCustomer() {
 }
 
 function renderHeader() {
+  // LINE開くボタン: 公式チャットURL優先、なければ個人LINE ID
+  let lineBtn = '';
+  if (customer.line_chat_url) {
+    lineBtn = `<button class="btn btn-line" onclick="window.open('${customer.line_chat_url}','_blank')">💬 LINEチャットを開く</button>`;
+  } else if (customer.line_id) {
+    lineBtn = `<button class="btn btn-line" onclick="window.open('https://line.me/R/ti/p/${encodeURIComponent(customer.line_id)}','_blank')">💬 LINE を開く</button>`;
+  } else {
+    lineBtn = `<div class="text-secondary mt-8" style="font-size:0.78rem">カルテ編集からLINEチャットURLを登録するとワンタップで開けます</div>`;
+  }
+
   document.getElementById('karte-header').innerHTML = `
     <div class="customer-name-big">${esc(customer.name)}</div>
     ${customer.nickname ? `<div style="color:var(--text-secondary);font-size:0.9rem">（${esc(customer.nickname)}）</div>` : ''}
-    ${customer.line_id
-      ? `<button class="btn btn-line" onclick="window.open('https://line.me/R/ti/p/${encodeURIComponent(customer.line_id)}','_blank')">LINE を開く 📱</button>`
-      : `<div class="text-secondary mt-8" style="font-size:0.78rem">LINE IDを設定するとワンタップでトーク画面を開けます</div>`}`;
+    ${lineBtn}`;
 }
 
 function renderKarte() {
   const fields = [
-    { key: 'appearance',       label: '見た目メモ',  full: true, type: 'textarea' },
+    { key: 'appearance',       label: '見た目メモ',        full: true, type: 'textarea' },
     { key: 'occupation',       label: '職業' },
     { key: 'hobbies',          label: '趣味' },
     { key: 'drink_preference', label: '酒の好み' },
     { key: 'birthday',         label: '誕生日' },
-    { key: 'line_id',          label: 'LINE ID' },
-    { key: 'ng_topics',        label: 'NG話題',     full: true, type: 'textarea' },
-    { key: 'notes',            label: '自由メモ',   full: true, type: 'textarea' },
+    { key: 'ng_topics',        label: 'NG話題',            full: true, type: 'textarea' },
+    { key: 'line_chat_url',    label: 'LINEチャットURL',   full: true, placeholder: 'LINEで相手のメッセージを長押し→リンクをコピー して貼り付け' },
+    { key: 'notes',            label: '自由メモ',          full: true, type: 'textarea' },
   ];
 
   const specialFields = `
@@ -83,9 +91,10 @@ function renderKarte() {
     <div class="karte-grid">
       ${fields.map((f) => {
         const val = esc(customer[f.key] ?? '');
+        const ph = f.placeholder ? `placeholder="${esc(f.placeholder)}"` : '';
         const inputEl = f.type === 'textarea'
-          ? `<textarea id="edit-${f.key}" class="hidden" style="min-height:60px">${val}</textarea>`
-          : `<input id="edit-${f.key}" class="hidden" type="text" value="${val}">`;
+          ? `<textarea id="edit-${f.key}" class="hidden" style="min-height:60px" ${ph}>${val}</textarea>`
+          : `<input id="edit-${f.key}" class="hidden" type="text" value="${val}" ${ph}>`;
         return `
           <div class="karte-item ${f.full ? 'full' : ''}">
             <label>${f.label}</label>
@@ -107,7 +116,7 @@ function renderKarte() {
 // 編集モード切り替え
 function toggleEdit() {
   editMode = !editMode;
-  const allKeys = ['appearance','occupation','hobbies','drink_preference','birthday','line_id','ng_topics','notes','temperature','bg_color'];
+  const allKeys = ['appearance','occupation','hobbies','drink_preference','birthday','ng_topics','line_chat_url','notes','temperature','bg_color'];
   allKeys.forEach((k) => {
     document.getElementById(`disp-${k}`)?.classList.toggle('hidden', editMode);
     document.getElementById(`edit-${k}`)?.classList.toggle('hidden', !editMode);
@@ -129,6 +138,9 @@ async function saveCustomer() {
   saveBtn.disabled = true;
 
   const val = (id) => document.getElementById(id)?.value?.trim() || null;
+  // LINEチャットURLは ?messageId=... を除去して保存
+  const lineChatRaw = val('edit-line_chat_url');
+  const lineChatUrl = lineChatRaw ? lineChatRaw.replace(/\?.*$/, '') : null;
 
   try {
     await api(`/api/customers/${customerId}`, {
@@ -141,6 +153,7 @@ async function saveCustomer() {
         birthday:         val('edit-birthday'),
         line_id:          val('edit-line_id'),
         ng_topics:        val('edit-ng_topics'),
+        line_chat_url:    lineChatUrl,
         notes:            val('edit-notes'),
         temperature:      Number(val('edit-temperature')) || null,
         bg_color:         val('edit-bg_color'),

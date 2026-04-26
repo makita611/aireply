@@ -56,16 +56,17 @@ export async function handleCreateCustomer(
   const id = newId();
   await env.DB.prepare(
     `INSERT INTO customers
-       (id, cast_id, name, nickname, line_id, appearance, occupation,
+       (id, cast_id, name, nickname, line_id, line_chat_url, appearance, occupation,
         hobbies, drink_preference, birthday, ng_topics, bg_color,
         temperature, notes, last_visit)
-     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`
+     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`
   )
     .bind(
       id, castId,
       body.name,
       body.nickname ?? null,
       body.line_id ?? null,
+      body.line_chat_url ?? null,
       body.appearance ?? null,
       body.occupation ?? null,
       body.hobbies ?? null,
@@ -132,6 +133,7 @@ export async function handleUpdateCustomer(
          last_visit = COALESCE(?, last_visit),
          priority = COALESCE(?, priority),
          archived = COALESCE(?, archived),
+         line_chat_url = COALESCE(?, line_chat_url),
          updated_at = datetime('now')
      WHERE id = ? AND cast_id = ?`
   )
@@ -151,6 +153,7 @@ export async function handleUpdateCustomer(
       body.last_visit ?? null,
       body.priority ?? null,
       body.archived ?? null,
+      body.line_chat_url ?? null,
       customerId,
       castId
     )
@@ -198,4 +201,5 @@ interface CustomerInput {
   last_visit: string;
   priority: number;
   archived: number;
+  line_chat_url: string;
 }
