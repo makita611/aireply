@@ -93,6 +93,77 @@ export async function handleGenerate(
   return json({ suggestions });
 }
 
+// ── POST /api/ai/analyze ─────────────────────────────
+// なげっぱなしメモをAIが各カルテ項目に自動振り分け
+export async function handleAnalyze(
+  request: Request,
+  castId: string,
+  env: Env
+): Promise<Response> {
+  const { customer_id, memo_text } = (await request.json()) as {
+    customer_id?: string;
+    memo_text?: string;
+  };
+
+  if (!customer_id || !memo_text?.trim()) {
+    return json({ error: 'customer_id と memo_text は必須です' }, 400);
+  }
+
+  const customer = await env.DB.prepare(
+    'SELECT id FROM customers WHERE id = ? AND cast_id = ?'
+  ).bind(customer_id, castId).first();
+  if (!customer) return json({ error: '顧客が見つかりません' }, 404);
+
+  const controller = new AbortController();
+  const timeout = setTimeout(() => controller.abort(), 15000);
+
+  let res: globalThis.Response;
+  try {
+    res = await fetch(`${env.DIFY_BASE_URL}/workflows/run`, {
+      method: 'POST',
+      headers: {
+        Authorization: `Bearer ${env.DIFY_ANALYZE_API_KEY}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        inputs: { memo_text: memo_text.trim() },
+        response_mode: 'blocking',
+        user: castId,
+      }),
+      signal: controller.signal,
+    });
+  } finally {
+    clearTimeout(timeout);
+  }
+
+  if (!res.ok) {
+    const errBody = await res.text().catch(() => '');
+    return json({ error: `Dify APIエラー: ${res.status} ${errBody}` }, 502);
+  }
+
+  const data = (await res.json()) as {
+    data?: { outputs?: Record<string, unknown> };
+  };
+  const outputs = data.data?.outputs ?? {};
+  const rawText =
+    (outputs['text'] as string) ||
+    (outputs['result'] as string) ||
+    Object.values(outputs).find((v) => typeof v === 'string') as string | undefined;
+
+  if (!rawText) return json({ error: 'Difyから結果を取得できませんでした' }, 502);
+
+  // JSON部分を抽出してパース
+  const match = rawText.match(/\{[\s\S]*\}/);
+  if (!match) return json({ error: 'AIの出力をパースできませんでした', raw: rawText }, 502);
+
+  try {
+    const fields = JSON.parse(match[0]);
+    return json({ fields });
+  } catch {
+    return json({ error: 'AIの出力をパースできませんでした', raw: rawText }, 502);
+  }
+}
+
 // ── Dify Workflow API呼び出し ─────────────────────────
 // Chatflow（/chat-messages）ではなくWorkflow（/workflows/run）を使う
 // Workflowはユーザーメッセージ不要で変数をそのまま渡せる

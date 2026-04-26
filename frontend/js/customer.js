@@ -9,6 +9,54 @@ let customer = null;
 let editMode = false;
 let selectedTone = null;
 
+// ── AIカルテ分析（なげっぱなし入力） ─────────────
+function initAnalyzeBtn() {
+  const btn    = document.getElementById('analyze-btn');
+  const memo   = document.getElementById('analyze-memo');
+  const errEl  = document.getElementById('analyze-error');
+  if (!btn) return;
+
+  btn.addEventListener('click', async () => {
+    errEl.classList.add('hidden');
+    const text = memo.value.trim();
+    if (!text) { errEl.textContent = 'メモを入力してください'; errEl.classList.remove('hidden'); return; }
+
+    btn.disabled = true;
+    btn.textContent = '分析中... ✨';
+    try {
+      const { fields } = await api('/api/ai/analyze', {
+        method: 'POST',
+        body: JSON.stringify({ customer_id: customerId, memo_text: text }),
+      });
+
+      // 編集モードを自動でONにして結果を流し込む
+      if (!editMode) toggleEdit();
+
+      const fieldMap = {
+        appearance: 'edit-appearance', occupation: 'edit-occupation',
+        hobbies: 'edit-hobbies', drink_preference: 'edit-drink_preference',
+        birthday: 'edit-birthday', ng_topics: 'edit-ng_topics', notes: 'edit-notes',
+      };
+      let filled = 0;
+      for (const [key, elId] of Object.entries(fieldMap)) {
+        if (fields[key]) {
+          const el = document.getElementById(elId);
+          if (el) { el.value = fields[key]; filled++; }
+        }
+      }
+      memo.value = '';
+      btn.textContent = `✅ ${filled}項目を入力しました。確認して保存してください。`;
+      setTimeout(() => { btn.textContent = '✨ AIに整理してもらう'; }, 4000);
+    } catch (err) {
+      errEl.textContent = err.message;
+      errEl.classList.remove('hidden');
+      btn.textContent = '✨ AIに整理してもらう';
+    } finally {
+      btn.disabled = false;
+    }
+  });
+}
+
 // ── タブ切り替え ─────────────────────────────────
 document.querySelectorAll('.tab-nav-btn').forEach((btn) => {
   btn.addEventListener('click', () => {
@@ -23,6 +71,7 @@ document.querySelectorAll('.tab-nav-btn').forEach((btn) => {
 async function init() {
   await Promise.all([loadCustomer(), loadLogs()]);
   document.getElementById('log-date').value = new Date().toISOString().slice(0, 10);
+  initAnalyzeBtn();
 }
 
 // ── 顧客ヘッダー + カルテ描画 ────────────────────

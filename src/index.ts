@@ -13,7 +13,7 @@ import {
   handleDeleteCustomer,
 } from './customers';
 import { handleListLogs, handleCreateLog, handleUpdateLog, handleDeleteLog } from './logs';
-import { handleGenerate } from './ai';
+import { handleGenerate, handleAnalyze } from './ai';
 
 // ── 環境変数の型定義 ──────────────────────────────────
 export interface Env {
@@ -21,6 +21,7 @@ export interface Env {
   CASTLINE_KV: KVNamespace;
   JWT_SECRET: string;
   DIFY_API_KEY: string;
+  DIFY_ANALYZE_API_KEY: string;
   DIFY_BASE_URL: string;
   ENVIRONMENT: string;
 }
@@ -134,9 +135,13 @@ export default {
         if (method === 'DELETE') return addCors(await handleDeleteLog(customerId, logId, castId, env), origin);
       }
 
-      // AI生成
+      // AI返信生成
       if (path === '/api/ai/generate' && method === 'POST') {
         return addCors(await handleGenerate(request, castId, env), origin);
+      }
+      // AIカルテ分析（なげっぱなし→自動振り分け）
+      if (path === '/api/ai/analyze' && method === 'POST') {
+        return addCors(await handleAnalyze(request, castId, env), origin);
       }
 
       return json({ error: 'Not Found' }, 404, origin);

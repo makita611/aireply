@@ -90,6 +90,20 @@
 
   <!-- カルテタブ -->
   <div class="tab-panel active" id="tab-karte">
+    <!-- AIなげっぱなし入力 -->
+    <div class="card" style="margin-bottom:16px;border-color:rgba(212,175,55,0.25)">
+      <div class="section-label">✨ AIに一括入力してもらう</div>
+      <p style="font-size:0.8rem;color:var(--text-secondary);margin-bottom:10px">
+        気づいたことを箇条書きで放り込むだけ。AIが各項目に自動で振り分けます。
+      </p>
+      <textarea id="analyze-memo" style="min-height:80px"
+        placeholder="例: 身長180、短髪、IT社長、ワイン好き、誕生日5月15日、奥さんの話NG、ゴルフ趣味"></textarea>
+      <div id="analyze-error" class="error-msg hidden mt-8"></div>
+      <button class="btn btn-secondary" id="analyze-btn" style="margin-top:10px">
+        ✨ AIに整理してもらう
+      </button>
+    </div>
+
     <div id="karte-fields-area">
       <div class="loading"><div class="spinner"></div></div>
     </div>
