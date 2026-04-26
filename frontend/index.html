@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>aireply — ログイン</title>
+  <link rel="stylesheet" href="/css/style.css">
+  <style>
+    body { display: flex; align-items: center; justify-content: center; min-height: 100dvh; padding: 24px 16px; }
+    .login-wrap { width: 100%; max-width: 380px; }
+    .logo { text-align: center; margin-bottom: 40px; }
+    .logo h1 { font-size: 2.4rem; margin-bottom: 4px; }
+    .logo p { font-size: 0.8rem; color: var(--text-secondary); letter-spacing: 0.1em; }
+    .tab-btns { display: flex; gap: 0; margin-bottom: 28px; border-bottom: 1px solid rgba(255,255,255,0.1); }
+    .tab-btn { flex: 1; background: none; border: none; color: var(--text-secondary); font-family: inherit; font-size: 0.9rem; padding: 10px; cursor: pointer; border-bottom: 2px solid transparent; transition: all 0.2s; }
+    .tab-btn.active { color: var(--accent-gold); border-bottom-color: var(--accent-gold); }
+    .switch-link { text-align: center; margin-top: 20px; font-size: 0.85rem; color: var(--text-secondary); }
+  </style>
+</head>
+<body>
+  <div class="login-wrap">
+    <div class="logo">
+      <h1 class="brand">aireply</h1>
+      <p>100人の関係を落とさず回す、営業OS</p>
+    </div>
+
+    <div class="tab-btns">
+      <button class="tab-btn active" id="tab-login">ログイン</button>
+      <button class="tab-btn" id="tab-register">新規登録</button>
+    </div>
+
+    <div id="error-msg" class="error-msg hidden"></div>
+
+    <form id="auth-form">
+      <div class="form-group">
+        <label>メールアドレス</label>
+        <input type="email" id="email" placeholder="cast@example.com" required autocomplete="email">
+      </div>
+      <div class="form-group">
+        <label>パスワード</label>
+        <input type="password" id="password" placeholder="8文字以上" required autocomplete="current-password" minlength="8">
+      </div>
+      <button type="submit" class="btn btn-primary" id="submit-btn">ログイン</button>
+    </form>
+  </div>
+
+  <script type="module" src="/js/auth.js"></script>
+</body>
+</html>

@@ -1,0 +1,15 @@
+name = "aireply"
+main = "src/index.ts"
+compatibility_date = "2024-05-29"
+
+[[d1_databases]]
+binding = "DB"
+database_name = "castline-db"
+database_id = "7afa16e4-8b1d-484a-bb2d-827f5b300321"
+
+[[kv_namespaces]]
+binding = "CASTLINE_KV"
+id = "a103058c99f6469db7788dcaeab010b3"
+
+[vars]
+ENVIRONMENT = "development"

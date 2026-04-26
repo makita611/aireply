@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>aireply — 顧客一覧</title>
+  <link rel="stylesheet" href="/css/style.css">
+  <style>
+    .customer-grid { padding: 16px 16px 100px; }
+    .empty-state { text-align: center; padding: 60px 20px; color: var(--text-secondary); }
+    .empty-state p { margin-top: 8px; font-size: 0.9rem; }
+  </style>
+</head>
+<body>
+  <!-- ヘッダー -->
+  <header class="header">
+    <span class="brand header-title">aireply</span>
+    <div class="header-actions">
+      <button class="btn btn-icon" onclick="location.href='/settings'" title="設定">⚙️</button>
+      <button class="btn btn-icon" id="logout-btn" title="ログアウト">🚪</button>
+    </div>
+  </header>
+
+  <!-- 検索 -->
+  <div style="padding: 16px 16px 0;">
+    <div class="search-bar">
+      <input type="text" id="search-input" placeholder="名前で検索...">
+    </div>
+  </div>
+
+  <!-- 顧客リスト -->
+  <div class="customer-grid" id="customer-list">
+    <div class="loading"><div class="spinner"></div>読み込み中...</div>
+  </div>
+
+  <!-- 新規追加FAB -->
+  <button class="fab" id="add-btn" title="顧客を追加">＋</button>
+
+  <!-- 新規追加モーダル -->
+  <div class="modal-overlay hidden" id="add-modal">
+    <div class="modal">
+      <div class="modal-title">顧客を追加</div>
+      <div id="add-error" class="error-msg hidden"></div>
+      <div class="form-group">
+        <label>名前 <span style="color:var(--accent-rose)">*</span></label>
+        <input type="text" id="add-name" placeholder="例: 田中さん">
+      </div>
+      <div class="form-group">
+        <label>呼び名</label>
+        <input type="text" id="add-nickname" placeholder="例: たなっち">
+      </div>
+      <div class="form-group">
+        <label>背景色（誤爆防止）</label>
+        <input type="color" id="add-bgcolor" value="#1a1a2e" style="height:44px;padding:4px 8px;">
+      </div>
+      <div style="display:flex;gap:8px;">
+        <button class="btn btn-secondary" id="add-cancel">キャンセル</button>
+        <button class="btn btn-primary" id="add-submit">追加</button>
+      </div>
+    </div>
+  </div>
+
+  <script type="module" src="/js/dashboard.js"></script>
+</body>
+</html>

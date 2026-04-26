@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>aireply — 営業コクピット</title>
+  <link rel="stylesheet" href="/css/style.css">
+  <style>
+    /* 顧客ヘッダー */
+    .cockpit-header {
+      padding: 20px 16px 16px;
+      border-bottom: 1px solid rgba(255,255,255,0.08);
+    }
+    .customer-name-big {
+      font-size: 2rem;
+      font-weight: 700;
+      letter-spacing: 0.02em;
+      margin-bottom: 4px;
+    }
+
+    /* タブナビ */
+    .tab-nav {
+      display: flex;
+      border-bottom: 1px solid rgba(255,255,255,0.08);
+      background: var(--bg-card);
+      position: sticky;
+      top: 53px;
+      z-index: 50;
+    }
+    .tab-nav-btn {
+      flex: 1;
+      background: none;
+      border: none;
+      border-bottom: 2px solid transparent;
+      color: var(--text-secondary);
+      font-family: inherit;
+      font-size: 0.85rem;
+      padding: 12px 4px;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    .tab-nav-btn.active {
+      color: var(--accent-gold);
+      border-bottom-color: var(--accent-gold);
+    }
+
+    /* タブパネル */
+    .tab-panel { display: none; padding: 20px 16px 100px; }
+    .tab-panel.active { display: block; }
+
+    /* カルテ内レイアウト */
+    .karte-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+      margin-top: 12px;
+    }
+    .karte-item label { font-size: 0.72rem; color: var(--text-secondary); display: block; margin-bottom: 3px; }
+    .karte-item span  { font-size: 0.9rem; display: block; min-height: 20px; }
+    .karte-item input, .karte-item textarea { font-size: 0.9rem; padding: 6px 10px; min-height: 36px; }
+    .karte-item.full  { grid-column: 1 / -1; }
+
+    /* LINE開くボタン */
+    .btn-line { background: #06c755; color: #fff; margin-top: 12px; }
+
+    /* AI生成 */
+    .suggestion-card { position: relative; }
+    .suggestion-copy { position: absolute; top: 10px; right: 10px; font-size: 0.75rem; padding: 4px 10px; min-height: 28px; width: auto; }
+  </style>
+</head>
+<body>
+  <!-- ヘッダー -->
+  <header class="header">
+    <button class="btn btn-icon" onclick="history.back()">←</button>
+    <span class="brand" style="font-size:1rem">aireply</span>
+    <button class="btn btn-danger" id="delete-btn" style="width:auto;padding:0 12px;font-size:0.8rem;min-height:36px">削除</button>
+  </header>
+
+  <!-- 顧客名ヘッダー（全タブ共通） -->
+  <div class="cockpit-header" id="karte-header">
+    <div class="loading"><div class="spinner"></div></div>
+  </div>
+
+  <!-- タブナビ -->
+  <nav class="tab-nav">
+    <button class="tab-nav-btn active" data-tab="karte">📋 カルテ</button>
+    <button class="tab-nav-btn"        data-tab="ai">✨ AI返信</button>
+    <button class="tab-nav-btn"        data-tab="memo">📝 対応履歴</button>
+  </nav>
+
+  <!-- カルテタブ -->
+  <div class="tab-panel active" id="tab-karte">
+    <div id="karte-fields-area">
+      <div class="loading"><div class="spinner"></div></div>
+    </div>
+  </div>
+
+  <!-- AI返信タブ -->
+  <div class="tab-panel" id="tab-ai">
+    <div class="section-label">トーン選択</div>
+    <div class="tone-btns">
+      <button class="btn-tone" data-tone="Sweet">💕 Sweet</button>
+      <button class="btn-tone" data-tone="Cool">😎 Cool</button>
+      <button class="btn-tone" data-tone="Business">💼 Business</button>
+      <button class="btn-tone" data-tone="Care">🤗 Care</button>
+    </div>
+    <div class="form-group">
+      <label>追記コメント（例: 昨日の同伴のお礼）</label>
+      <textarea id="ai-context" placeholder="状況や目的を入力..."></textarea>
+    </div>
+    <button class="btn btn-primary" id="generate-btn">返信を考える ✨</button>
+    <div id="ai-error" class="error-msg hidden mt-8"></div>
+    <div id="suggestions" class="mt-16"></div>
+  </div>
+
+  <!-- メモタブ -->
+  <div class="tab-panel" id="tab-memo">
+    <div class="card" style="margin-bottom:16px">
+      <div class="section-label">対応を記録</div>
+      <div class="form-group">
+        <label>日にち</label>
+        <input type="date" id="log-date">
+      </div>
+      <div class="form-group">
+        <label>種別</label>
+        <select id="log-type">
+          <option value="来店">🍾 来店</option>
+          <option value="LINE">💬 LINE</option>
+          <option value="店外">☕ 店外</option>
+          <option value="その他">📌 その他</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label>メモ</label>
+        <textarea id="log-memo" placeholder="会話の内容、やりとりのポイントなど..." style="min-height:80px"></textarea>
+      </div>
+      <div class="form-group" id="drink-field">
+        <label>注文したお酒</label>
+        <input type="text" id="log-drink" placeholder="例: ドンペリ白">
+      </div>
+      <button class="btn btn-secondary" id="log-submit">記録する</button>
+    </div>
+
+    <div class="section-label">対応履歴</div>
+    <div id="log-list">
+      <div class="loading"><div class="spinner"></div></div>
+    </div>
+  </div>
+
+  <script type="module" src="/js/customer.js"></script>
+</body>
+</html>

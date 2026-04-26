@@ -1,0 +1,16 @@
+node_modules/
+.wrangler/
+.dev.vars
+dist/
+*.js.map
+
+# Claude Code設定
+.claude/
+
+# Obsidian企画メモ（リポジトリ不要）
+キャストLINE.md
+Claude_Code指示書.md
+CLAUDE_MD_テンプレート 1.md
+成功確率を上げる戦略メモ.md
+キャストLINEgeminiディープリサーチ.md
+キャストLINEgptディープリサーチ.md
