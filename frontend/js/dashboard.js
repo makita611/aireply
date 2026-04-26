@@ -32,11 +32,11 @@ async function loadCustomers(q = '') {
 
 // 放置日数を計算
 function neglectBadge(lastVisit) {
-  if (!lastVisit) return null;
+  if (!lastVisit) return { label: '📅 対応履歴なし', color: 'var(--text-secondary)' };
   const days = Math.floor((Date.now() - new Date(lastVisit)) / 86400000);
   if (days <= 10) return null;
-  if (days <= 21) return { label: `⚡ ${days}日`, color: 'var(--accent-business)' };
-  if (days <= 45) return { label: `⚠️ ${days}日`, color: 'var(--accent-rose)' };
+  if (days <= 21) return { label: `⚡ ${days}日未連絡`, color: 'var(--accent-business)' };
+  if (days <= 45) return { label: `⚠️ ${days}日未連絡`, color: 'var(--accent-rose)' };
   return               { label: `🚨 ${days}日放置`, color: '#ff4444' };
 }
 

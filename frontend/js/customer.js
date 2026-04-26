@@ -81,6 +81,17 @@ async function loadCustomer() {
     renderHeader();
     renderKarte();
     document.querySelector('.cockpit-header').style.background = customer.bg_color || '#1a1a2e';
+
+    // カルテにデータがあればAIタブをデフォルト表示
+    const hasKarte = customer.appearance || customer.occupation || customer.hobbies ||
+                     customer.notes || customer.ng_topics || customer.drink_preference;
+    if (hasKarte) {
+      document.querySelectorAll('.tab-nav-btn').forEach(b => b.classList.remove('active'));
+      document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
+      document.querySelector('[data-tab="ai"]').classList.add('active');
+      document.getElementById('tab-ai').classList.add('active');
+    }
+
   // アーカイブ状態でボタンラベルを変更
   const deleteBtn = document.getElementById('delete-btn');
   deleteBtn.textContent = customer.archived ? '📦 戻す' : '📦 アーカイブ';
