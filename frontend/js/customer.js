@@ -61,6 +61,8 @@ function renderHeader() {
 
 function renderKarte() {
   const fields = [
+    { key: 'name',             label: '名前',              full: true },
+    { key: 'nickname',         label: '呼び名' },
     { key: 'appearance',       label: '見た目メモ',        full: true, type: 'textarea' },
     { key: 'occupation',       label: '職業' },
     { key: 'hobbies',          label: '趣味' },
@@ -116,7 +118,7 @@ function renderKarte() {
 // 編集モード切り替え
 function toggleEdit() {
   editMode = !editMode;
-  const allKeys = ['appearance','occupation','hobbies','drink_preference','birthday','ng_topics','line_chat_url','notes','temperature','bg_color'];
+  const allKeys = ['name','nickname','appearance','occupation','hobbies','drink_preference','birthday','ng_topics','line_chat_url','notes','temperature','bg_color'];
   allKeys.forEach((k) => {
     document.getElementById(`disp-${k}`)?.classList.toggle('hidden', editMode);
     document.getElementById(`edit-${k}`)?.classList.toggle('hidden', !editMode);
@@ -143,9 +145,19 @@ async function saveCustomer() {
   const lineChatUrl = lineChatRaw ? lineChatRaw.replace(/\?.*$/, '') : null;
 
   try {
+    const newName = val('edit-name');
+    if (!newName) {
+      karteErr.textContent = '名前は必須です';
+      karteErr.classList.remove('hidden');
+      saveBtn.disabled = false;
+      return;
+    }
+
     await api(`/api/customers/${customerId}`, {
       method: 'PUT',
       body: JSON.stringify({
+        name:             newName,
+        nickname:         val('edit-nickname'),
         appearance:       val('edit-appearance'),
         occupation:       val('edit-occupation'),
         hobbies:          val('edit-hobbies'),

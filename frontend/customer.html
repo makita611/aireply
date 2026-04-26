@@ -63,9 +63,9 @@
     /* LINE開くボタン */
     .btn-line { background: #06c755; color: #fff; margin-top: 12px; }
 
-    /* AI生成 */
-    .suggestion-card { position: relative; }
-    .suggestion-copy { position: absolute; top: 10px; right: 10px; font-size: 0.75rem; padding: 4px 10px; min-height: 28px; width: auto; }
+    /* AI生成 — コピーボタンを文章の下に配置 */
+    .suggestion-card { display: flex; flex-direction: column; gap: 10px; }
+    .suggestion-copy { align-self: flex-end; font-size: 0.8rem; padding: 6px 16px; min-height: 36px; width: auto; }
   </style>
 </head>
 <body>
