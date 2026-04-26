@@ -138,10 +138,10 @@ export async function handleGetSettings(
   env: Env
 ): Promise<Response> {
   const cast = await env.DB.prepare(
-    'SELECT stage_name, character_prompt, sample_lines FROM casts WHERE id = ?'
+    'SELECT stage_name, character_prompt, sample_lines, shop_name, age, cast_hobbies FROM casts WHERE id = ?'
   )
     .bind(castId)
-    .first<{ stage_name: string; character_prompt: string; sample_lines: string }>();
+    .first();
 
   if (!cast) return json({ error: '見つかりません' }, 404);
   return json(cast);
@@ -153,15 +153,20 @@ export async function handleUpdateSettings(
   castId: string,
   env: Env
 ): Promise<Response> {
-  const { stage_name, character_prompt, sample_lines } = (await request.json()) as {
-    stage_name?: string;
-    character_prompt?: string;
-    sample_lines?: string[];
-  };
+  const { stage_name, character_prompt, sample_lines, shop_name, age, cast_hobbies } =
+    (await request.json()) as {
+      stage_name?: string;
+      character_prompt?: string;
+      sample_lines?: string[];
+      shop_name?: string;
+      age?: number;
+      cast_hobbies?: string;
+    };
 
   await env.DB.prepare(
     `UPDATE casts
      SET stage_name = ?, character_prompt = ?, sample_lines = ?,
+         shop_name = ?, age = ?, cast_hobbies = ?,
          updated_at = datetime('now')
      WHERE id = ?`
   )
@@ -169,6 +174,9 @@ export async function handleUpdateSettings(
       stage_name ?? null,
       character_prompt ?? null,
       sample_lines ? JSON.stringify(sample_lines) : null,
+      shop_name ?? null,
+      age ?? null,
+      cast_hobbies ?? null,
       castId
     )
     .run();

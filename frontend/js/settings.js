@@ -2,21 +2,25 @@ import { api, requireAuth } from './api.js';
 
 if (!requireAuth()) throw new Error('unauthenticated');
 
-const stageNameEl      = document.getElementById('stage-name');
-const characterEl      = document.getElementById('character-prompt');
-const sampleLinesEl    = document.getElementById('sample-lines');
-const saveBtn          = document.getElementById('save-btn');
-const errorEl          = document.getElementById('settings-error');
-const successEl        = document.getElementById('settings-success');
+const stageNameEl   = document.getElementById('stage-name');
+const castAgeEl     = document.getElementById('cast-age');
+const shopNameEl    = document.getElementById('shop-name');
+const castHobbiesEl = document.getElementById('cast-hobbies');
+const characterEl   = document.getElementById('character-prompt');
+const sampleLinesEl = document.getElementById('sample-lines');
+const saveBtn       = document.getElementById('save-btn');
+const errorEl       = document.getElementById('settings-error');
+const successEl     = document.getElementById('settings-success');
 
-// ── 現在の設定を読み込む ──────────────────────────
 async function loadSettings() {
   try {
     const data = await api('/api/cast/settings');
     stageNameEl.value   = data.stage_name ?? '';
+    castAgeEl.value     = data.age ?? '';
+    shopNameEl.value    = data.shop_name ?? '';
+    castHobbiesEl.value = data.cast_hobbies ?? '';
     characterEl.value   = data.character_prompt ?? '';
 
-    // sample_lines は JSON配列 or テキスト
     if (data.sample_lines) {
       try {
         const arr = JSON.parse(data.sample_lines);
@@ -30,26 +34,25 @@ async function loadSettings() {
   }
 }
 
-// ── 保存 ─────────────────────────────────────────
 saveBtn.addEventListener('click', async () => {
   errorEl.classList.add('hidden');
   successEl.classList.add('hidden');
   saveBtn.disabled = true;
   saveBtn.textContent = '保存中...';
 
-  // テキストエリアの各行を配列に変換
   const sampleLines = sampleLinesEl.value
-    .split('\n')
-    .map((l) => l.trim())
-    .filter(Boolean);
+    .split('\n').map((l) => l.trim()).filter(Boolean);
 
   try {
     await api('/api/cast/settings', {
       method: 'PUT',
       body: JSON.stringify({
-        stage_name:        stageNameEl.value.trim() || null,
-        character_prompt:  characterEl.value.trim() || null,
-        sample_lines:      sampleLines.length ? sampleLines : null,
+        stage_name:       stageNameEl.value.trim() || null,
+        age:              castAgeEl.value ? Number(castAgeEl.value) : null,
+        shop_name:        shopNameEl.value.trim() || null,
+        cast_hobbies:     castHobbiesEl.value.trim() || null,
+        character_prompt: characterEl.value.trim() || null,
+        sample_lines:     sampleLines.length ? sampleLines : null,
       }),
     });
     successEl.classList.remove('hidden');

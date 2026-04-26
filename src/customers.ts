@@ -11,28 +11,31 @@ function json(data: unknown, status = 200): Response {
   });
 }
 
+const SORT_OPTIONS: Record<string, string> = {
+  'last_visit': 'last_visit DESC',
+  'name':       'name ASC',
+  'priority':   'priority DESC, last_visit DESC',
+  'temperature':'temperature DESC',
+};
+
 // ── GET /api/customers ───────────────────────────────
 export async function handleListCustomers(
   request: Request,
   castId: string,
   env: Env
 ): Promise<Response> {
-  const url = new URL(request.url);
-  const q = url.searchParams.get('q') ?? '';
+  const url    = new URL(request.url);
+  const q      = url.searchParams.get('q') ?? '';
+  const sort   = SORT_OPTIONS[url.searchParams.get('sort') ?? ''] ?? SORT_OPTIONS['last_visit'];
+  const archived = url.searchParams.get('archived') === '1' ? 1 : 0;
 
-  const query = q
-    ? `SELECT id, name, nickname, bg_color, temperature, last_visit
-       FROM customers
-       WHERE cast_id = ? AND name LIKE ?
-       ORDER BY last_visit DESC`
-    : `SELECT id, name, nickname, bg_color, temperature, last_visit
-       FROM customers
-       WHERE cast_id = ?
-       ORDER BY last_visit DESC`;
+  const base = `SELECT id, name, nickname, bg_color, temperature, last_visit, priority, archived
+                FROM customers
+                WHERE cast_id = ? AND archived = ?`;
 
   const stmt = q
-    ? env.DB.prepare(query).bind(castId, `%${q}%`)
-    : env.DB.prepare(query).bind(castId);
+    ? env.DB.prepare(`${base} AND name LIKE ? ORDER BY ${sort}`).bind(castId, archived, `%${q}%`)
+    : env.DB.prepare(`${base} ORDER BY ${sort}`).bind(castId, archived);
 
   const { results } = await stmt.all();
   return json(results);
@@ -127,6 +130,8 @@ export async function handleUpdateCustomer(
          temperature = COALESCE(?, temperature),
          notes = COALESCE(?, notes),
          last_visit = COALESCE(?, last_visit),
+         priority = COALESCE(?, priority),
+         archived = COALESCE(?, archived),
          updated_at = datetime('now')
      WHERE id = ? AND cast_id = ?`
   )
@@ -144,6 +149,8 @@ export async function handleUpdateCustomer(
       body.temperature ?? null,
       body.notes ?? null,
       body.last_visit ?? null,
+      body.priority ?? null,
+      body.archived ?? null,
       customerId,
       castId
     )
@@ -189,4 +196,6 @@ interface CustomerInput {
   temperature: number;
   notes: string;
   last_visit: string;
+  priority: number;
+  archived: number;
 }

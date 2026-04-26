@@ -32,6 +32,11 @@ async function loadCustomer() {
     renderHeader();
     renderKarte();
     document.querySelector('.cockpit-header').style.background = customer.bg_color || '#1a1a2e';
+  // アーカイブ状態でボタンラベルを変更
+  const deleteBtn = document.getElementById('delete-btn');
+  deleteBtn.textContent = customer.archived ? '📦 戻す' : '📦 アーカイブ';
+  deleteBtn.className = customer.archived ? 'btn btn-secondary' : 'btn btn-secondary';
+  deleteBtn.style.cssText = 'width:auto;padding:0 12px;font-size:0.8rem;min-height:36px';
   } catch (err) {
     document.getElementById('karte-header').innerHTML = `<div class="error-msg">${err.message}</div>`;
   }
@@ -150,14 +155,36 @@ async function saveCustomer() {
   }
 }
 
-// ── 削除 ─────────────────────────────────────────
+// ── 削除 / アーカイブ ────────────────────────────
 document.getElementById('delete-btn').addEventListener('click', async () => {
-  if (!confirm(`「${customer?.name ?? ''}」を削除しますか？元に戻せません。`)) return;
-  try {
-    await api(`/api/customers/${customerId}`, { method: 'DELETE' });
-    location.href = '/dashboard';
-  } catch (err) {
-    alert(err.message);
+  const name = customer?.name ?? '';
+  const isArchived = customer?.archived;
+
+  const choice = confirm(
+    isArchived
+      ? `「${name}」をアーカイブから戻しますか？\n\nOK → 通常に戻す\nキャンセル → そのまま`
+      : `「${name}」をどうしますか？\n\nOK → アーカイブ（非表示、後から戻せる）\nキャンセル → 何もしない`
+  );
+  if (!choice) return;
+
+  if (isArchived) {
+    // アーカイブ解除
+    try {
+      await api(`/api/customers/${customerId}`, {
+        method: 'PUT',
+        body: JSON.stringify({ archived: 0 }),
+      });
+      location.href = '/dashboard';
+    } catch (err) { alert(err.message); }
+  } else {
+    // アーカイブ
+    try {
+      await api(`/api/customers/${customerId}`, {
+        method: 'PUT',
+        body: JSON.stringify({ archived: 1 }),
+      });
+      location.href = '/dashboard';
+    } catch (err) { alert(err.message); }
   }
 });
 
