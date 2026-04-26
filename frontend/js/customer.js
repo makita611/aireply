@@ -69,7 +69,7 @@ document.querySelectorAll('.tab-nav-btn').forEach((btn) => {
 
 // ── 初期ロード ───────────────────────────────────
 async function init() {
-  await Promise.all([loadCustomer(), loadLogs()]);
+  await Promise.all([loadCustomer(), loadLogs(), loadAiHistory()]);
   document.getElementById('log-date').value = new Date().toISOString().slice(0, 10);
   initAnalyzeBtn();
 }
@@ -267,6 +267,7 @@ const toneButtons   = document.querySelectorAll('.btn-tone');
 const generateBtn   = document.getElementById('generate-btn');
 const suggestionsEl = document.getElementById('suggestions');
 const aiError       = document.getElementById('ai-error');
+let currentLogId    = null;
 
 toneButtons.forEach((btn) => {
   btn.addEventListener('click', () => {
@@ -276,7 +277,9 @@ toneButtons.forEach((btn) => {
   });
 });
 
-generateBtn.addEventListener('click', async () => {
+generateBtn.addEventListener('click', () => runGenerate());
+
+async function runGenerate(refineText = null) {
   aiError.classList.add('hidden');
   if (!selectedTone) {
     aiError.textContent = 'トーンを選択してください';
@@ -287,16 +290,19 @@ generateBtn.addEventListener('click', async () => {
   generateBtn.textContent = '考え中... ✨';
   suggestionsEl.innerHTML = '<div class="loading"><div class="spinner"></div>AI返信を生成中...</div>';
 
+  const contextEl = document.getElementById('ai-context');
+  let context = contextEl.value.trim() || null;
+  if (refineText) {
+    context = `【修正依頼】元の文章: "${refineText}" / 修正内容: ${context || '自然に改善してください'}`;
+  }
+
   try {
-    const { suggestions } = await api('/api/ai/generate', {
+    const res = await api('/api/ai/generate', {
       method: 'POST',
-      body: JSON.stringify({
-        customer_id: customerId,
-        tone: selectedTone,
-        additional_context: document.getElementById('ai-context').value.trim() || null,
-      }),
+      body: JSON.stringify({ customer_id: customerId, tone: selectedTone, additional_context: context }),
     });
-    renderSuggestions(suggestions);
+    currentLogId = res.log_id;
+    renderSuggestions(res.suggestions);
   } catch (err) {
     aiError.textContent = err.message;
     aiError.classList.remove('hidden');
@@ -305,22 +311,97 @@ generateBtn.addEventListener('click', async () => {
     generateBtn.disabled = false;
     generateBtn.textContent = '返信を考える ✨';
   }
-});
+}
 
 function renderSuggestions(suggestions) {
-  suggestionsEl.innerHTML = suggestions.map((text) => `
+  suggestionsEl.innerHTML = suggestions.map((text, i) => `
     <div class="suggestion-card card" style="margin-bottom:10px">
       <div class="suggestion-text">${esc(text)}</div>
-      <button class="btn btn-secondary suggestion-copy" data-text="${esc(text)}">コピー</button>
+      <div style="display:flex;gap:8px;justify-content:flex-end;margin-top:4px">
+        <button class="btn btn-secondary suggestion-refine" data-text="${esc(text)}"
+                style="font-size:0.78rem;padding:4px 12px;min-height:32px;width:auto">
+          ✏️ 修正
+        </button>
+        <button class="btn btn-primary suggestion-copy" data-text="${esc(text)}" data-idx="${i}"
+                style="font-size:0.8rem;padding:6px 16px;min-height:36px;width:auto">
+          コピー
+        </button>
+      </div>
+      <div class="refine-area hidden" style="margin-top:8px">
+        <input type="text" class="refine-input" placeholder="修正内容を入力（例: もっと短く、絵文字を増やす）">
+        <button class="btn btn-secondary refine-submit" data-text="${esc(text)}"
+                style="margin-top:6px;font-size:0.85rem">再生成する</button>
+      </div>
     </div>`).join('');
 
+  // コピーボタン
   suggestionsEl.querySelectorAll('.suggestion-copy').forEach((btn) => {
     btn.addEventListener('click', async () => {
       await navigator.clipboard.writeText(btn.dataset.text);
       btn.textContent = '✓ コピー済み';
-      setTimeout(() => { btn.textContent = 'コピー'; }, 2000);
+      btn.style.background = 'rgba(129,199,132,0.3)';
+      setTimeout(() => { btn.textContent = 'コピー'; btn.style.background = ''; }, 3000);
+      // 採用を記録
+      if (currentLogId) {
+        api(`/api/ai/logs/${currentLogId}`, {
+          method: 'PUT',
+          body: JSON.stringify({ selected_index: Number(btn.dataset.idx) }),
+        }).then(() => loadAiHistory()).catch(() => {});
+      }
     });
   });
+
+  // 修正ボタン
+  suggestionsEl.querySelectorAll('.suggestion-refine').forEach((btn) => {
+    btn.addEventListener('click', () => {
+      const area = btn.closest('.suggestion-card').querySelector('.refine-area');
+      area.classList.toggle('hidden');
+    });
+  });
+
+  // 再生成ボタン
+  suggestionsEl.querySelectorAll('.refine-submit').forEach((btn) => {
+    btn.addEventListener('click', () => {
+      const input = btn.previousElementSibling;
+      const note = input.value.trim();
+      if (!note) { input.placeholder = '修正内容を入力してください'; return; }
+      document.getElementById('ai-context').value = note;
+      runGenerate(btn.dataset.text);
+    });
+  });
+}
+
+// 採用返信の履歴を読み込み・表示
+async function loadAiHistory() {
+  const histEl = document.getElementById('ai-history');
+  if (!histEl) return;
+  try {
+    const logs = await api(`/api/customers/${customerId}/ai-logs`);
+    if (!logs.length) {
+      histEl.innerHTML = '<div class="text-secondary" style="font-size:0.82rem">採用した返信がまだありません</div>';
+      return;
+    }
+    const TONE_ICONS = { Sweet:'💕', Cool:'😎', Business:'💼', Care:'🤗' };
+    histEl.innerHTML = logs.map((l) => `
+      <div class="card" style="margin-bottom:8px;padding:12px">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px">
+          <span style="font-size:0.75rem;color:var(--text-secondary)">${l.created_at?.slice(0,10)} ${TONE_ICONS[l.tone]||''} ${l.tone}</span>
+          <button class="btn btn-secondary hist-copy" data-text="${esc(l.selected_text)}"
+                  style="font-size:0.75rem;padding:3px 10px;min-height:28px;width:auto">再利用</button>
+        </div>
+        <div style="font-size:0.88rem;line-height:1.6">${esc(l.selected_text)}</div>
+      </div>`).join('');
+
+    histEl.querySelectorAll('.hist-copy').forEach((btn) => {
+      btn.addEventListener('click', async () => {
+        await navigator.clipboard.writeText(btn.dataset.text);
+        btn.textContent = '✓ コピー';
+        setTimeout(() => { btn.textContent = '再利用'; }, 2000);
+      });
+    });
+  } catch {
+    histEl.innerHTML = '';
+  }
 }
 
 // ── 対応履歴 ─────────────────────────────────────

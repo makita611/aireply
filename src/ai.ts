@@ -76,21 +76,64 @@ export async function handleGenerate(
   }
 
   // 生成ログ保存
+  const logId = newId();
   await env.DB.prepare(
     `INSERT INTO ai_logs (id, cast_id, customer_id, tone, prompt_summary, generated_texts)
      VALUES (?, ?, ?, ?, ?, ?)`
   )
-    .bind(
-      newId(),
-      castId,
-      customer_id,
-      tone,
-      additional_context ?? null,
-      JSON.stringify(suggestions)
-    )
+    .bind(logId, castId, customer_id, tone, additional_context ?? null, JSON.stringify(suggestions))
     .run();
 
-  return json({ suggestions });
+  return json({ suggestions, log_id: logId });
+}
+
+// ── PUT /api/ai/logs/:logId （採用返信を記録） ────────
+export async function handleSelectReply(
+  request: Request,
+  logId: string,
+  castId: string,
+  env: Env
+): Promise<Response> {
+  const { selected_index } = (await request.json()) as { selected_index?: number };
+  if (selected_index === undefined || selected_index < 0 || selected_index > 2) {
+    return json({ error: 'selected_index は 0〜2 で指定してください' }, 400);
+  }
+  await env.DB.prepare(
+    'UPDATE ai_logs SET selected_index = ? WHERE id = ? AND cast_id = ?'
+  ).bind(selected_index, logId, castId).run();
+  return json({ ok: true });
+}
+
+// ── GET /api/customers/:id/ai-logs （採用履歴） ───────
+export async function handleGetAiLogs(
+  customerId: string,
+  castId: string,
+  env: Env
+): Promise<Response> {
+  // 所有権確認
+  const owner = await env.DB.prepare(
+    'SELECT id FROM customers WHERE id = ? AND cast_id = ?'
+  ).bind(customerId, castId).first();
+  if (!owner) return json({ error: '見つかりません' }, 404);
+
+  const { results } = await env.DB.prepare(
+    `SELECT id, tone, generated_texts, selected_index, prompt_summary, created_at
+     FROM ai_logs
+     WHERE customer_id = ? AND cast_id = ? AND selected_index IS NOT NULL
+     ORDER BY created_at DESC
+     LIMIT 20`
+  ).bind(customerId, castId).all();
+
+  return json(results.map((r) => {
+    const texts = JSON.parse((r.generated_texts as string) || '[]') as string[];
+    return {
+      id: r.id,
+      tone: r.tone,
+      selected_text: texts[r.selected_index as number] ?? '',
+      prompt_summary: r.prompt_summary,
+      created_at: r.created_at,
+    };
+  }));
 }
 
 // ── POST /api/ai/analyze ─────────────────────────────

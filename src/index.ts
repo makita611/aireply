@@ -13,7 +13,7 @@ import {
   handleDeleteCustomer,
 } from './customers';
 import { handleListLogs, handleCreateLog, handleUpdateLog, handleDeleteLog } from './logs';
-import { handleGenerate, handleAnalyze } from './ai';
+import { handleGenerate, handleAnalyze, handleSelectReply, handleGetAiLogs } from './ai';
 
 // ── 環境変数の型定義 ──────────────────────────────────
 export interface Env {
@@ -142,6 +142,16 @@ export default {
       // AIカルテ分析（なげっぱなし→自動振り分け）
       if (path === '/api/ai/analyze' && method === 'POST') {
         return addCors(await handleAnalyze(request, castId, env), origin);
+      }
+      // 採用返信を記録
+      const aiLogMatch = path.match(/^\/api\/ai\/logs\/([^/]+)$/);
+      if (aiLogMatch && method === 'PUT') {
+        return addCors(await handleSelectReply(request, aiLogMatch[1], castId, env), origin);
+      }
+      // 採用返信履歴
+      const aiLogsMatch = path.match(/^\/api\/customers\/([^/]+)\/ai-logs$/);
+      if (aiLogsMatch && method === 'GET') {
+        return addCors(await handleGetAiLogs(aiLogsMatch[1], castId, env), origin);
       }
 
       return json({ error: 'Not Found' }, 404, origin);

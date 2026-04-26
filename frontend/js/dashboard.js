@@ -30,6 +30,16 @@ async function loadCustomers(q = '') {
   }
 }
 
+// 放置日数を計算
+function neglectBadge(lastVisit) {
+  if (!lastVisit) return null;
+  const days = Math.floor((Date.now() - new Date(lastVisit)) / 86400000);
+  if (days <= 10) return null;
+  if (days <= 21) return { label: `⚡ ${days}日`, color: 'var(--accent-business)' };
+  if (days <= 45) return { label: `⚠️ ${days}日`, color: 'var(--accent-rose)' };
+  return               { label: `🚨 ${days}日放置`, color: '#ff4444' };
+}
+
 function renderList(customers) {
   if (!customers.length) {
     listEl.innerHTML = `
@@ -40,16 +50,29 @@ function renderList(customers) {
     return;
   }
 
-  listEl.innerHTML = customers.map((c) => {
-    const badge = tempBadge(c.temperature);
+  // 温度感の説明
+  const legend = `
+    <div style="display:flex;gap:8px;flex-wrap:wrap;padding:0 0 10px;font-size:0.72rem;color:var(--text-secondary)">
+      <span>🔥 80以上=ぜひ呼びたい</span>
+      <span>😊 50〜79=良好</span>
+      <span>😐 30〜49=要フォロー</span>
+      <span>❄️ 30未満=要アラート</span>
+    </div>`;
+
+  listEl.innerHTML = legend + customers.map((c) => {
+    const badge    = tempBadge(c.temperature);
+    const neglect  = neglectBadge(c.last_visit);
     const lastVisit = c.last_visit ? `最終来店: ${c.last_visit}` : '来店記録なし';
     const archivedMark = c.archived ? '<span style="font-size:0.7rem;color:var(--text-secondary);margin-left:4px">📦</span>' : '';
+    const neglectTag = neglect
+      ? `<span style="font-size:0.72rem;padding:2px 7px;border-radius:99px;background:rgba(255,68,68,0.15);color:${neglect.color};margin-left:6px">${neglect.label}</span>`
+      : '';
     return `
       <div class="customer-card" data-id="${c.id}"
            style="background-color: ${c.bg_color || '#1a1a2e'}">
         <div class="customer-card-avatar">👤</div>
         <div style="flex:1;min-width:0">
-          <div class="customer-card-name">${esc(c.name)}${archivedMark}</div>
+          <div class="customer-card-name">${esc(c.name)}${archivedMark}${neglectTag}</div>
           <div class="customer-card-meta">${lastVisit}</div>
         </div>
         <span class="badge ${badge.cls}">${badge.label}</span>
