@@ -123,10 +123,16 @@ function renderKarte() {
   ];
 
   const specialFields = `
-    <div class="karte-item">
+    <div class="karte-item full">
       <label>温度感 (0-100)</label>
-      <span id="disp-temperature">${customer.temperature ?? 50}</span>
+      <span id="disp-temperature" style="font-size:1.1rem;font-weight:700">${customer.temperature ?? 50}</span>
       <input id="edit-temperature" class="hidden" type="number" min="0" max="100" value="${customer.temperature ?? 50}">
+      <div style="display:flex;gap:10px;flex-wrap:wrap;margin-top:6px;font-size:0.72rem;color:var(--text-secondary)">
+        <span>🔥 80以上 = ぜひ呼びたい</span>
+        <span>😊 50〜79 = 良好</span>
+        <span>😐 30〜49 = 要フォロー</span>
+        <span>❄️ 30未満 = 要アラート</span>
+      </div>
     </div>
     <div class="karte-item">
       <label>背景色</label>
