@@ -13,7 +13,7 @@ import {
   handleDeleteCustomer,
 } from './customers';
 import { handleListLogs, handleCreateLog, handleUpdateLog, handleDeleteLog } from './logs';
-import { handleGenerate, handleGenerateStream, handleAnalyze, handleSelectReply, handleGetAiLogs } from './ai';
+import { handleGenerate, handleGenerateStream, handleAnalyze, handleSelectReply, handleGetAiLogs, handleSaveGeneratedLog } from './ai';
 import { handleChat, handleDashboardContext, handleAddMemory, handleGetMemories, handleDeleteMemory } from './chat';
 
 // ── 環境変数の型定義 ──────────────────────────────────
@@ -160,6 +160,10 @@ export default {
       // AI返信生成（ブロッキング）
       if (path === '/api/ai/generate' && method === 'POST') {
         return addCors(await handleGenerate(request, castId, env), origin);
+      }
+      // ストリーミング生成済みテキストをDBに保存（Dify2回目不要）
+      if (path === '/api/ai/save-generated-log' && method === 'POST') {
+        return addCors(await handleSaveGeneratedLog(request, castId, env), origin);
       }
       // AI返信生成（ストリーミング）
       if (path === '/api/ai/generate-stream' && method === 'POST') {

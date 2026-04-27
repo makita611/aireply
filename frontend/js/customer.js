@@ -67,11 +67,44 @@ document.querySelectorAll('.tab-nav-btn').forEach((btn) => {
   });
 });
 
+// ── キャッシュ（前回生成結果の復元） ─────────────────
+const CACHE_KEY = `airipu_sugg_${customerId}`;
+
+function saveSuggestionsCache(suggestions, tone) {
+  try {
+    localStorage.setItem(CACHE_KEY, JSON.stringify({ suggestions, tone, ts: Date.now() }));
+  } catch {}
+}
+
+function loadSuggestionsCache() {
+  try {
+    const raw = localStorage.getItem(CACHE_KEY);
+    if (!raw) return null;
+    const d = JSON.parse(raw);
+    if (Date.now() - d.ts > 3600000) { localStorage.removeItem(CACHE_KEY); return null; }
+    return d;
+  } catch { return null; }
+}
+
+function clearSuggestionsCache() {
+  localStorage.removeItem(CACHE_KEY);
+}
+
 // ── 初期ロード ───────────────────────────────────
 async function init() {
   await Promise.all([loadCustomer(), loadLogs(), loadAiHistory()]);
   document.getElementById('log-date').value = new Date().toISOString().slice(0, 10);
   initAnalyzeBtn();
+
+  // 前回の生成結果をキャッシュから復元
+  const cached = loadSuggestionsCache();
+  if (cached?.suggestions?.length) {
+    const label = document.createElement('div');
+    label.style.cssText = 'font-size:0.72rem;color:var(--text-secondary);text-align:center;padding:4px 0 6px';
+    label.textContent = '↩ 前回の生成結果（新しく生成すると更新されます）';
+    suggestionsEl.before(label);
+    renderSavedSuggestions(cached.suggestions);
+  }
 }
 
 // ── 顧客ヘッダー + カルテ描画 ────────────────────
@@ -312,7 +345,8 @@ async function runGenerate(refineText = null) {
     context = `【修正依頼】元の文章: "${refineText}" / 修正内容: ${context || '自然に改善してください'}`;
   }
 
-  // 3枚のカードスロットを先に作成（streaming中に順番に埋まる）
+  // キャッシュラベルを削除して新規生成開始
+  suggestionsEl.previousElementSibling?.remove?.();
   suggestionsEl.innerHTML = '';
   const slots = [0, 1, 2].map(i => {
     const card = document.createElement('div');
@@ -376,12 +410,14 @@ async function runGenerate(refineText = null) {
               outputs['text'] || outputs['result'] ||
               Object.values(outputs).find(v => typeof v === 'string') || accumulated;
             if (rawText) {
-              api('/api/ai/generate', {
-                method: 'POST',
-                body: JSON.stringify({ customer_id: customerId, tone: selectedTone, additional_context: context }),
-              }).then(r => { if (r?.log_id) currentLogId = r.log_id; loadAiHistory(); }).catch(() => {});
               const suggestions = parseSuggestions(String(rawText));
               finalizeSlots(slots, suggestions);
+              saveSuggestionsCache(suggestions, selectedTone);
+              // Dify2回目不要: 生成済みテキストをそのままDBに保存
+              api('/api/ai/save-generated-log', {
+                method: 'POST',
+                body: JSON.stringify({ customer_id: customerId, tone: selectedTone, texts: suggestions, additional_context: context }),
+              }).then(r => { if (r?.log_id) currentLogId = r.log_id; }).catch(() => {});
             }
           }
         } catch {}
@@ -410,6 +446,22 @@ function parseSuggestions(text) {
   const byNum = text.split(/\n?\d+[\.\)]\s+/).map(s => s.trim()).filter(Boolean);
   if (byNum.length >= 2) return byNum.slice(0, 3);
   return [text.trim()];
+}
+
+// キャッシュから復元した提案を表示（スロットなし即時表示）
+function renderSavedSuggestions(suggestions) {
+  suggestionsEl.innerHTML = '';
+  const slots = suggestions.map(() => {
+    const card = document.createElement('div');
+    card.className = 'suggestion-card card';
+    card.style.cssText = 'opacity:1';
+    const textEl = document.createElement('div');
+    textEl.className = 'suggestion-text';
+    card.appendChild(textEl);
+    suggestionsEl.appendChild(card);
+    return card;
+  });
+  finalizeSlots(slots, suggestions);
 }
 
 // streaming中: text_chunkが届くたびにカードを更新
@@ -502,6 +554,7 @@ function finalizeSlots(slots, suggestions) {
       copyBtn.textContent = '✓ コピー済み';
       copyBtn.style.background = 'rgba(129,199,132,0.3)';
       setTimeout(() => { copyBtn.textContent = '📋 コピー'; copyBtn.style.background = ''; }, 3000);
+      clearSuggestionsCache(); // コピーしたらキャッシュクリア（次回は履歴のみ）
       if (currentLogId) {
         api(`/api/ai/logs/${currentLogId}`, {
           method: 'PUT',

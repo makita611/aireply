@@ -168,6 +168,35 @@ export async function handleGenerateStream(
   });
 }
 
+// ── POST /api/ai/save-generated-log ─────────────────
+// ストリーミング生成済みのテキストをDBに保存（Dify2回目呼び出し不要）
+export async function handleSaveGeneratedLog(
+  request: Request,
+  castId: string,
+  env: Env
+): Promise<Response> {
+  const { customer_id, tone, texts, additional_context } = (await request.json()) as {
+    customer_id?: string;
+    tone?: string;
+    texts?: string[];
+    additional_context?: string;
+  };
+  if (!customer_id || !tone || !texts?.length) {
+    return json({ error: 'customer_id, tone, texts は必須です' }, 400);
+  }
+  const owner = await env.DB.prepare(
+    'SELECT id FROM customers WHERE id = ? AND cast_id = ?'
+  ).bind(customer_id, castId).first();
+  if (!owner) return json({ error: '顧客が見つかりません' }, 404);
+
+  const logId = newId();
+  await env.DB.prepare(
+    `INSERT INTO ai_logs (id, cast_id, customer_id, tone, prompt_summary, generated_texts)
+     VALUES (?, ?, ?, ?, ?, ?)`
+  ).bind(logId, castId, customer_id, tone, additional_context ?? null, JSON.stringify(texts)).run();
+  return json({ log_id: logId });
+}
+
 // ── PUT /api/ai/logs/:logId （採用返信を記録） ────────
 export async function handleSelectReply(
   request: Request,
