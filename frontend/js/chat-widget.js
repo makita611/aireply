@@ -228,12 +228,12 @@ function bindEvents() {
     const div = document.createElement('div');
     if (role === 'ai') {
       div.style.cssText = 'display:flex;align-items:flex-start;gap:8px;max-width:90%';
-      div.innerHTML = `<div style="width:28px;height:28px;border-radius:50%;overflow:hidden;flex-shrink:0;margin-top:2px;border:1px solid rgba(212,175,55,0.3)">${AVATAR_IMG}</div>
-        <div style="background:var(--bg-card);color:var(--text-primary);padding:10px 14px;
-                    border-radius:0 16px 16px 16px;font-size:0.9rem;line-height:1.6;flex:1"></div>`;
+      div.innerHTML = `<div style="width:28px;height:28px;border-radius:50%;overflow:hidden;flex-shrink:0;margin-top:4px;border:1px solid rgba(212,175,55,0.3)">${AVATAR_IMG}</div>
+        <div class="aw-text-bubble" style="background:var(--bg-card);color:var(--text-primary);padding:10px 14px;
+                    border-radius:0 16px 16px 16px;font-size:0.95rem;line-height:1.6;flex:1;min-height:44px;word-break:break-word"></div>`;
       messages.appendChild(div);
       messages.scrollTop = messages.scrollHeight;
-      return div.querySelector('div');
+      return div.querySelector('.aw-text-bubble');
     } else {
       div.style.cssText = 'align-self:flex-end;max-width:85%;padding:10px 14px;border-radius:16px 16px 4px 16px;background:linear-gradient(135deg,#d4af37,#b8902a);color:#0d0d1a;font-size:0.9rem;line-height:1.6';
       div.textContent = text;

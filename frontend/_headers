@@ -9,3 +9,6 @@
 
 /css/*.css
   Cache-Control: no-cache, no-store, must-revalidate
+
+/img/*
+  Cache-Control: no-cache, no-store, must-revalidate
