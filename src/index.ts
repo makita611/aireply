@@ -14,6 +14,7 @@ import {
 } from './customers';
 import { handleListLogs, handleCreateLog, handleUpdateLog, handleDeleteLog } from './logs';
 import { handleGenerate, handleAnalyze, handleSelectReply, handleGetAiLogs } from './ai';
+import { handleChat, handleDashboardContext, handleAddMemory, handleGetMemories, handleDeleteMemory } from './chat';
 
 // ── 環境変数の型定義 ──────────────────────────────────
 export interface Env {
@@ -22,6 +23,7 @@ export interface Env {
   JWT_SECRET: string;
   DIFY_API_KEY: string;
   DIFY_ANALYZE_API_KEY: string;
+  DIFY_CHAT_API_KEY: string;
   DIFY_BASE_URL: string;
   ENVIRONMENT: string;
 }
@@ -133,6 +135,26 @@ export default {
         const [, customerId, logId] = logItemMatch;
         if (method === 'PUT') return addCors(await handleUpdateLog(request, customerId, logId, castId, env), origin);
         if (method === 'DELETE') return addCors(await handleDeleteLog(customerId, logId, castId, env), origin);
+      }
+
+      // AIチャット（ストリーミング）
+      if (path === '/api/ai/chat' && method === 'POST') {
+        return await handleChat(request, castId, env);
+      }
+      // ダッシュボード用コンテキスト
+      if (path === '/api/ai/dashboard' && method === 'GET') {
+        return addCors(await handleDashboardContext(castId, env), origin);
+      }
+      // 長期記憶
+      if (path === '/api/memories' && method === 'GET') {
+        return addCors(await handleGetMemories(castId, env), origin);
+      }
+      if (path === '/api/memories' && method === 'POST') {
+        return addCors(await handleAddMemory(request, castId, env), origin);
+      }
+      const memMatch = path.match(/^\/api\/memories\/([^/]+)$/);
+      if (memMatch && method === 'DELETE') {
+        return addCors(await handleDeleteMemory(memMatch[1], castId, env), origin);
       }
 
       // AI返信生成

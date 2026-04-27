@@ -1,17 +1,17 @@
-import { api, requireAuth } from './api.js';
+import { api, requireAuth, getCastId } from './api.js';
 
 if (!requireAuth()) throw new Error('unauthenticated');
 
-const listEl       = document.getElementById('customer-list');
-const searchEl     = document.getElementById('search-input');
-const sortEl       = document.getElementById('sort-select');
-const archiveToggle= document.getElementById('archive-toggle');
-const addModal     = document.getElementById('add-modal');
-const addError     = document.getElementById('add-error');
-const addBtn       = document.getElementById('add-btn');
-const addCancel    = document.getElementById('add-cancel');
-const addSubmit    = document.getElementById('add-submit');
-const logoutBtn    = document.getElementById('logout-btn');
+const listEl        = document.getElementById('customer-list');
+const searchEl      = document.getElementById('search-input');
+const sortEl        = document.getElementById('sort-select');
+const archiveToggle = document.getElementById('archive-toggle');
+const addModal      = document.getElementById('add-modal');
+const addError      = document.getElementById('add-error');
+const addBtn        = document.getElementById('add-btn');
+const addCancel     = document.getElementById('add-cancel');
+const addSubmit     = document.getElementById('add-submit');
+const logoutBtn     = document.getElementById('logout-btn');
 
 let showArchived = false;
 
@@ -165,3 +165,198 @@ function esc(str) {
 }
 
 loadCustomers();
+initConcierge();
+initChat();
+initMemory();
+
+// ────────────────────────────────────────────────────
+// AI コンシェルジュ（挨拶 + 要連絡カード）
+// ────────────────────────────────────────────────────
+async function initConcierge() {
+  const greetingEl = document.getElementById('concierge-greeting');
+  const alertEl    = document.getElementById('concierge-alert');
+
+  // 時間帯別挨拶
+  const h = new Date().getHours();
+  const greeting =
+    h >= 20 || h < 4  ? '今夜もお疲れ様💕 いい営業できてる？' :
+    h < 12             ? 'おはよう☀️ 今日も頑張ろう！' :
+                         'お昼だね🌙 ゆっくり休めてる？';
+  greetingEl.textContent = greeting;
+
+  // 要連絡顧客を表示
+  try {
+    const { alert_customers } = await api('/api/ai/dashboard');
+    if (alert_customers?.length) {
+      alertEl.innerHTML = `
+        <div style="font-size:0.78rem;color:var(--accent-gold);margin-bottom:4px">そろそろ連絡したほうがいいかも✨</div>
+        ${alert_customers.map(c => {
+          const days = c.last_visit
+            ? Math.floor((Date.now() - new Date(c.last_visit)) / 86400000)
+            : null;
+          return `<div style="font-size:0.82rem;color:var(--text-secondary)">
+            • ${esc(c.name)}（温度感${c.temperature}、${days ? `${days}日未連絡` : '来店記録なし'}）
+          </div>`;
+        }).join('')}`;
+    }
+  } catch {}
+}
+
+// ────────────────────────────────────────────────────
+// チャット（ストリーミング）
+// ────────────────────────────────────────────────────
+const STORAGE_KEY = `aireply_cid_${getCastId()}`;
+
+function initChat() {
+  const panel    = document.getElementById('chat-panel');
+  const openBtn  = document.getElementById('chat-open-btn');
+  const closeBtn = document.getElementById('chat-close-btn');
+  const input    = document.getElementById('chat-input');
+  const sendBtn  = document.getElementById('chat-send-btn');
+  const messages = document.getElementById('chat-messages');
+
+  openBtn.addEventListener('click', () => {
+    panel.classList.remove('hidden');
+    if (!messages.children.length) addSystemMsg('こんにちは！何でも話しかけてね💕');
+    input.focus();
+  });
+  closeBtn.addEventListener('click', () => panel.classList.add('hidden'));
+
+  // Enter送信（Shift+Enterは改行）
+  input.addEventListener('keydown', (e) => {
+    if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); sendMessage(); }
+  });
+  sendBtn.addEventListener('click', sendMessage);
+
+  async function sendMessage() {
+    const text = input.value.trim();
+    if (!text) return;
+    input.value = '';
+
+    addBubble('user', text);
+
+    const aiBubble = addBubble('ai', '');
+    aiBubble.innerHTML = '<span class="spinner" style="width:16px;height:16px;display:inline-block"></span>';
+
+    const token     = localStorage.getItem('castline_token');
+    const conversationId = localStorage.getItem(STORAGE_KEY) || '';
+
+    try {
+      const BASE_URL = location.hostname === 'localhost' || location.hostname === '127.0.0.1'
+        ? 'http://localhost:8787' : 'https://aireply.aidbase11.workers.dev';
+
+      const res = await fetch(`${BASE_URL}/api/ai/chat`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+        body: JSON.stringify({ message: text, conversation_id: conversationId }),
+      });
+
+      if (!res.ok) throw new Error(`エラー: ${res.status}`);
+
+      const reader  = res.body.getReader();
+      const decoder = new TextDecoder();
+      let buf = '';
+      let fullText = '';
+
+      aiBubble.textContent = '';
+
+      while (true) {
+        const { done, value } = await reader.read();
+        if (done) break;
+        buf += decoder.decode(value, { stream: true });
+
+        const lines = buf.split('\n');
+        buf = lines.pop() || '';
+
+        for (const line of lines) {
+          if (!line.startsWith('data: ')) continue;
+          const raw = line.slice(6).trim();
+          if (raw === '[DONE]') break;
+          try {
+            const data = JSON.parse(raw);
+            if (data.answer) {
+              fullText += data.answer;
+              aiBubble.textContent = fullText;
+              messages.scrollTop = messages.scrollHeight;
+            }
+            if (data.conversation_id) {
+              localStorage.setItem(STORAGE_KEY, data.conversation_id);
+            }
+          } catch {}
+        }
+      }
+    } catch (err) {
+      aiBubble.textContent = `エラー: ${err.message}`;
+      aiBubble.style.color = 'var(--accent-rose)';
+    }
+  }
+
+  function addBubble(role, text) {
+    const div = document.createElement('div');
+    div.style.cssText = `
+      max-width: 85%; padding: 10px 14px; border-radius: 16px; font-size: 0.9rem; line-height: 1.6;
+      ${role === 'user'
+        ? 'align-self:flex-end;background:linear-gradient(135deg,#d4af37,#b8902a);color:#0d0d1a;border-bottom-right-radius:4px'
+        : 'align-self:flex-start;background:var(--bg-card);color:var(--text-primary);border-bottom-left-radius:4px'}
+    `;
+    div.textContent = text;
+    messages.appendChild(div);
+    messages.scrollTop = messages.scrollHeight;
+    return div;
+  }
+
+  function addSystemMsg(text) {
+    const div = document.createElement('div');
+    div.style.cssText = 'text-align:center;font-size:0.78rem;color:var(--text-secondary);padding:4px 0';
+    div.textContent = text;
+    messages.appendChild(div);
+  }
+}
+
+// ────────────────────────────────────────────────────
+// 長期記憶管理
+// ────────────────────────────────────────────────────
+function initMemory() {
+  const modal     = document.getElementById('memory-modal');
+  const openBtn   = document.getElementById('memory-btn');
+  const closeBtn  = document.getElementById('memory-close-btn');
+  const saveBtn   = document.getElementById('memory-save-btn');
+  const inputEl   = document.getElementById('memory-input');
+  const listEl    = document.getElementById('memory-list');
+
+  openBtn.addEventListener('click', () => { modal.classList.remove('hidden'); loadMemories(); });
+  closeBtn.addEventListener('click', () => modal.classList.add('hidden'));
+  modal.addEventListener('click', (e) => { if (e.target === modal) modal.classList.add('hidden'); });
+
+  saveBtn.addEventListener('click', async () => {
+    const content = inputEl.value.trim();
+    if (!content) return;
+    saveBtn.disabled = true;
+    try {
+      await api('/api/memories', { method: 'POST', body: JSON.stringify({ content }) });
+      inputEl.value = '';
+      await loadMemories();
+    } catch (err) { alert(err.message); }
+    finally { saveBtn.disabled = false; }
+  });
+
+  async function loadMemories() {
+    listEl.innerHTML = '<div class="loading"><div class="spinner"></div></div>';
+    try {
+      const mems = await api('/api/memories');
+      if (!mems.length) { listEl.innerHTML = '<div class="text-secondary" style="font-size:0.82rem">まだ記憶がありません</div>'; return; }
+      listEl.innerHTML = mems.map(m => `
+        <div style="display:flex;align-items:flex-start;gap:8px;padding:8px 0;border-bottom:1px solid rgba(255,255,255,0.06)">
+          <div style="flex:1;font-size:0.85rem">${esc(m.content)}</div>
+          <button class="btn btn-danger mem-del" data-id="${m.id}"
+                  style="width:32px;height:32px;padding:0;font-size:0.8rem;flex-shrink:0">🗑</button>
+        </div>`).join('');
+      listEl.querySelectorAll('.mem-del').forEach(btn => {
+        btn.addEventListener('click', async () => {
+          await api(`/api/memories/${btn.dataset.id}`, { method: 'DELETE' });
+          await loadMemories();
+        });
+      });
+    } catch { listEl.innerHTML = ''; }
+  }
+}
