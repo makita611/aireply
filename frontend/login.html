@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <!-- Google Tag Manager -->
+  <script>(function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({'gtm.start':new Date().getTime(),event:'gtm.js'});var f=d.getElementsByTagName(s)[0],j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src='https://www.googletagmanager.com/gtm.js?id='+i+dl;f.parentNode.insertBefore(j,f);})(window,document,'script','dataLayer','GTM-P6VNBWH3');</script>
+  <!-- End Google Tag Manager -->
+  <meta charset="UTF-8">
+  <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+  <meta http-equiv="Pragma" content="no-cache">
+  <meta http-equiv="Expires" content="0">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>アイリプ — ログイン</title>
+  <link rel="stylesheet" href="/css/style.css?v=20260428">
+  <style>
+    body { display: flex; align-items: center; justify-content: center; min-height: 100dvh; padding: 24px 16px; }
+    .login-wrap { width: 100%; max-width: 380px; }
+    .logo { text-align: center; margin-bottom: 40px; }
+    .logo h1 { font-size: 2.4rem; margin-bottom: 4px; }
+    .logo p { font-size: 0.8rem; color: var(--text-secondary); letter-spacing: 0.1em; }
+    .tab-btns { display: flex; gap: 0; margin-bottom: 28px; border-bottom: 1px solid rgba(255,255,255,0.1); }
+    .tab-btn { flex: 1; background: none; border: none; color: var(--text-secondary); font-family: inherit; font-size: 0.9rem; padding: 10px; cursor: pointer; border-bottom: 2px solid transparent; transition: all 0.2s; }
+    .tab-btn.active { color: var(--accent-gold); border-bottom-color: var(--accent-gold); }
+  </style>
+</head>
+<body>
+  <!-- Google Tag Manager (noscript) -->
+  <noscript><iframe src="https://www.googletagmanager.com/ns.html?id=GTM-P6VNBWH3" height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
+  <!-- End Google Tag Manager (noscript) -->
+  <div class="login-wrap">
+    <div class="logo">
+      <h1 class="brand">アイリプ</h1>
+      <p>100人の関係を落とさず回す、営業OS</p>
+    </div>
+
+    <div class="tab-btns">
+      <button class="tab-btn active" id="tab-login">ログイン</button>
+      <button class="tab-btn" id="tab-register">新規登録</button>
+    </div>
+
+    <div id="error-msg" class="error-msg hidden"></div>
+
+    <form id="auth-form">
+      <div class="form-group">
+        <label>メールアドレス</label>
+        <input type="email" id="email" placeholder="cast@example.com" required autocomplete="email">
+      </div>
+      <div class="form-group">
+        <label>パスワード</label>
+        <input type="password" id="password" placeholder="8文字以上" required autocomplete="current-password" minlength="8">
+      </div>
+      <button type="submit" class="btn btn-primary" id="submit-btn">ログイン</button>
+    </form>
+  </div>
+
+  <script type="module" src="/js/auth.js?v=20260428"></script>
+</body>
+</html>

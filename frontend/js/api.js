@@ -25,7 +25,7 @@ export async function api(endpoint, options = {}) {
   if (res.status === 401) {
     localStorage.removeItem('castline_token');
     localStorage.removeItem('castline_cast_id');
-    location.href = '/';
+    location.href = '/login';
     return;
   }
 
@@ -43,7 +43,7 @@ export async function api(endpoint, options = {}) {
 export function requireAuth() {
   const token = localStorage.getItem('castline_token');
   if (!token) {
-    location.href = '/';
+    location.href = '/login';
     return false;
   }
   return true;
