@@ -1,5 +1,5 @@
 import { api, requireAuth, getCastId } from './api.js';
-import { initChatWidget } from './chat-widget.js';
+import { initChatWidget, openChatPanel } from './chat-widget.js';
 
 if (!requireAuth()) throw new Error('unauthenticated');
 
@@ -168,6 +168,10 @@ function esc(str) {
 loadCustomers();
 initConcierge();
 initChatWidget();
+
+document.getElementById('inline-chat-bar').addEventListener('click', () => {
+  openChatPanel('');
+});
 
 // ────────────────────────────────────────────────────
 // AI コンシェルジュ（挨拶 + 要連絡カード）

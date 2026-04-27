@@ -6,7 +6,7 @@
   <meta http-equiv="Pragma" content="no-cache">
   <meta http-equiv="Expires" content="0">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>aireply — 顧客一覧</title>
+  <title>アイリプ — 顧客一覧</title>
   <link rel="stylesheet" href="/css/style.css?v=20260427">
   <style>
     .customer-grid { padding: 16px 16px 100px; }
@@ -17,7 +17,7 @@
 <body>
   <!-- ヘッダー -->
   <header class="header">
-    <span class="brand header-title">aireply</span>
+    <span class="brand header-title">アイリプ</span>
     <div class="header-actions">
       <button class="btn btn-icon" onclick="location.href='/settings'" title="設定">⚙️</button>
       <button class="btn btn-icon" id="logout-btn" title="ログアウト">🚪</button>
@@ -26,15 +26,24 @@
 
   <!-- AIコンシェルジュカード -->
   <div id="concierge-card" style="margin:12px 16px 0;padding:14px 16px;background:linear-gradient(135deg,#1a1a2e,#16213e);border:1px solid rgba(212,175,55,0.3);border-radius:12px">
-    <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:10px">
-      <div style="flex:1">
-        <div id="concierge-greeting" style="font-size:0.95rem;line-height:1.6;color:var(--text-primary)">
-          読み込み中...
-        </div>
-        <div id="concierge-alert" style="margin-top:8px"></div>
+    <!-- アバター＋挨拶 -->
+    <div style="display:flex;align-items:flex-start;gap:12px;margin-bottom:8px">
+      <img src="/img/airipu-avatar.svg" width="52" height="52"
+           style="border-radius:50%;flex-shrink:0;border:1.5px solid rgba(212,175,55,0.45)">
+      <div style="flex:1;min-width:0">
+        <div style="font-size:0.7rem;color:var(--accent-gold);margin-bottom:2px;letter-spacing:0.05em">AI秘書 アイリプ</div>
+        <div id="concierge-greeting" style="font-size:0.95rem;line-height:1.6;color:var(--text-primary)">読み込み中...</div>
       </div>
-      <!-- チャットボタンはchat-widgetが注入 -->
     </div>
+    <div id="concierge-alert" style="margin-bottom:6px"></div>
+    <!-- インラインチャット入力（タップで全画面チャットへ） -->
+    <button id="inline-chat-bar"
+      style="display:flex;align-items:center;gap:8px;width:100%;padding:9px 14px;
+             background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.12);
+             border-radius:20px;cursor:pointer;font-family:inherit">
+      <span style="flex:1;text-align:left;color:var(--text-secondary);font-size:0.88rem">アイリプに話しかける...</span>
+      <span style="font-size:1rem">💬</span>
+    </button>
   </div>
 
   <!-- チャットウィジェット・記憶管理はchat-widget.jsが動的に注入 -->
