@@ -371,8 +371,8 @@ async function runGenerate(refineText = null) {
           if (data.event === 'workflow_finished') {
             const outputs = data.data?.outputs ?? {};
             const rawText =
-              (outputs['text'] as string | undefined) ||
-              (outputs['result'] as string | undefined) ||
+              outputs['text'] ||
+              outputs['result'] ||
               Object.values(outputs).find(v => typeof v === 'string') || accumulated;
             if (rawText) {
               // blocking APIでlog_idを取得して保存（バックグラウンド）

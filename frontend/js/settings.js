@@ -12,8 +12,8 @@ const saveBtn       = document.getElementById('save-btn');
 const errorEl       = document.getElementById('settings-error');
 const successEl     = document.getElementById('settings-success');
 
-const AVATARS = ['🤖','✨','💫','🌙','👑','💎','🦋','🌸','⭐','🎀','🌺','🔮','🦄','🍀','💝'];
-let selectedAvatar = '🤖';
+const AVATARS = ['💁‍♀️','👩‍💼','🧝‍♀️','👸','🧚‍♀️','✨','💫','🌙','👑','💎','🦋','🌸','⭐','🎀','🔮'];
+let selectedAvatar = '💁‍♀️';
 
 // アバターグリッドを生成
 const avatarGrid = document.getElementById('avatar-grid');

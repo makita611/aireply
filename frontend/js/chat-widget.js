@@ -8,10 +8,11 @@ const BASE_URL = location.hostname === 'localhost' || location.hostname === '127
   ? 'http://localhost:8787'
   : 'https://aireply.aidbase11.workers.dev';
 
-const AVATARS = ['🤖','✨','💫','🌙','👑','💎','🦋','🌸','⭐','🎀'];
+const AVATARS = ['💁‍♀️','👩‍💼','🧝‍♀️','👸','🧚‍♀️','✨','💫','🌙','👑','💎','🦋','🌸','⭐','🎀','🔮'];
 const STORAGE_CID = `aireply_cid_${getCastId()}`;
 
-let chatAvatar = localStorage.getItem('aireply_avatar') || '🤖';
+let chatAvatar = localStorage.getItem('aireply_avatar') || '💁‍♀️';
+let chatExpanded = false;
 
 export function initChatWidget() {
   injectHTML();
@@ -33,32 +34,40 @@ function injectHTML() {
       <span id="aw-btn-icon">${chatAvatar}</span>
     </button>
 
-    <!-- チャットパネル -->
-    <div id="aw-panel" style="position:fixed;inset:0;background:var(--bg-primary);z-index:400;
-         display:none;flex-direction:column">
-      <!-- ヘッダー -->
-      <div style="display:flex;align-items:center;padding:12px 16px;
-                  background:var(--bg-card);border-bottom:1px solid rgba(255,255,255,0.08);gap:10px">
-        <button id="aw-close" style="background:none;border:none;color:var(--text-primary);font-size:1.2rem;cursor:pointer">✕</button>
-        <span id="aw-avatar-display" style="font-size:1.5rem">${chatAvatar}</span>
-        <span class="brand" style="font-size:0.95rem">AI秘書 あいりぷ</span>
-        <div style="flex:1"></div>
-        <button id="aw-avatar-btn" class="btn btn-secondary" style="width:auto;padding:0 10px;font-size:0.78rem;min-height:32px">顔を変える</button>
-        <button id="aw-memory-btn" class="btn btn-secondary" style="width:auto;padding:0 10px;font-size:0.78rem;min-height:32px">🧠</button>
+    <!-- チャットパネル（初期: 画面下半分、展開で全画面） -->
+    <div id="aw-panel" style="position:fixed;bottom:0;left:0;right:0;height:52vh;
+         background:var(--bg-primary);z-index:400;display:none;flex-direction:column;
+         border-radius:20px 20px 0 0;box-shadow:0 -4px 30px rgba(0,0,0,0.5);
+         transition:height 0.3s ease, border-radius 0.3s ease">
+      <!-- ドラッグハンドル＋ヘッダー -->
+      <div style="background:var(--bg-card);border-radius:20px 20px 0 0;border-bottom:1px solid rgba(255,255,255,0.08)">
+        <!-- ドラッグハンドル（タップで拡大/縮小） -->
+        <div id="aw-resize-handle" style="display:flex;justify-content:center;padding:8px 0;cursor:pointer">
+          <div style="width:40px;height:4px;background:rgba(255,255,255,0.2);border-radius:2px"></div>
+        </div>
+        <div style="display:flex;align-items:center;padding:0 16px 10px;gap:10px">
+          <span id="aw-avatar-display" style="font-size:1.4rem">${chatAvatar}</span>
+          <span class="brand" style="font-size:0.9rem">AI秘書 あいりぷ</span>
+          <div style="flex:1"></div>
+          <button id="aw-expand-btn" style="background:none;border:none;color:var(--text-secondary);font-size:1rem;cursor:pointer;padding:4px" title="全画面">⤢</button>
+          <button id="aw-avatar-btn" style="background:none;border:none;color:var(--text-secondary);font-size:1rem;cursor:pointer;padding:4px">🎭</button>
+          <button id="aw-memory-btn" style="background:none;border:none;color:var(--text-secondary);font-size:1rem;cursor:pointer;padding:4px">🧠</button>
+          <button id="aw-close" style="background:none;border:none;color:var(--text-secondary);font-size:1.1rem;cursor:pointer;padding:4px">✕</button>
+        </div>
       </div>
 
       <!-- メッセージ一覧 -->
-      <div id="aw-messages" style="flex:1;overflow-y:auto;padding:16px;display:flex;flex-direction:column;gap:12px"></div>
+      <div id="aw-messages" style="flex:1;overflow-y:auto;padding:12px 16px;display:flex;flex-direction:column;gap:10px"></div>
 
       <!-- 入力欄 -->
-      <div style="padding:12px 16px;background:var(--bg-card);border-top:1px solid rgba(255,255,255,0.08)">
+      <div style="padding:10px 16px 12px;background:var(--bg-card);border-top:1px solid rgba(255,255,255,0.08)">
         <div style="display:flex;gap:8px">
           <textarea id="aw-input" placeholder="話しかけてみて..." rows="1"
-            style="flex:1;min-height:44px;max-height:120px;resize:none;font-size:0.95rem;
-                   padding:10px 12px;background:var(--bg-input);border:1px solid rgba(255,255,255,0.1);
+            style="flex:1;min-height:40px;max-height:100px;resize:none;font-size:0.9rem;
+                   padding:8px 12px;background:var(--bg-input);border:1px solid rgba(255,255,255,0.1);
                    border-radius:8px;color:var(--text-primary);font-family:inherit"></textarea>
           <button id="aw-send" class="btn btn-primary"
-            style="width:44px;min-height:44px;padding:0;font-size:1.2rem;flex-shrink:0">↑</button>
+            style="width:40px;min-height:40px;padding:0;font-size:1.1rem;flex-shrink:0">↑</button>
         </div>
       </div>
     </div>
@@ -130,15 +139,44 @@ function bindEvents() {
   const memSave    = document.getElementById('aw-mem-save');
   const memList    = document.getElementById('aw-mem-list');
 
+  const expandBtn    = document.getElementById('aw-expand-btn');
+  const resizeHandle = document.getElementById('aw-resize-handle');
+
+  function setExpanded(expand) {
+    chatExpanded = expand;
+    if (expand) {
+      panel.style.height = '100dvh';
+      panel.style.borderRadius = '0';
+      expandBtn.textContent = '⤡';
+    } else {
+      panel.style.height = '52vh';
+      panel.style.borderRadius = '20px 20px 0 0';
+      expandBtn.textContent = '⤢';
+    }
+  }
+
   // 開く
   openBtn.addEventListener('click', () => {
     panel.style.display = 'flex';
+    setExpanded(false);
     if (!messages.children.length) addSystemMsg('こんにちは！何でも話しかけてね💕');
     input.focus();
   });
 
   // 閉じる
   closeBtn.addEventListener('click', () => { panel.style.display = 'none'; });
+
+  // 拡大/縮小ボタン
+  expandBtn.addEventListener('click', () => setExpanded(!chatExpanded));
+
+  // ハンドルをタップで拡大/縮小
+  resizeHandle.addEventListener('click', () => setExpanded(!chatExpanded));
+
+  // メッセージが増えたら自動で拡大
+  const msgObserver = new MutationObserver(() => {
+    if (!chatExpanded && messages.children.length >= 4) setExpanded(true);
+  });
+  msgObserver.observe(messages, { childList: true });
 
   // アバター選択
   avatarBtn.addEventListener('click', (e) => {
