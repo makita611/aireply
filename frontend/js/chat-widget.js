@@ -38,8 +38,8 @@ function injectHTML() {
     </button>
 
     <!-- チャットパネル（初期: 画面下半分、展開で全画面） -->
-    <div id="aw-panel" style="position:fixed;bottom:0;left:0;right:0;height:52vh;
-         background:var(--bg-primary);z-index:400;display:none;flex-direction:column;
+    <div id="aw-panel" style="position:fixed;bottom:0;left:0;right:0;width:100%;max-width:100vw;height:52vh;
+         background:var(--bg-primary);z-index:400;display:none;flex-direction:column;overflow:hidden;
          border-radius:20px 20px 0 0;box-shadow:0 -4px 30px rgba(0,0,0,0.5);
          transition:height 0.3s ease, border-radius 0.3s ease">
       <!-- ドラッグハンドル＋ヘッダー -->
@@ -62,14 +62,14 @@ function injectHTML() {
       <div id="aw-messages" style="flex:1;overflow-y:auto;padding:12px 16px;display:flex;flex-direction:column;gap:10px"></div>
 
       <!-- 入力欄 -->
-      <div style="padding:10px 16px 12px;background:var(--bg-card);border-top:1px solid rgba(255,255,255,0.08)">
-        <div style="display:flex;gap:8px">
+      <div style="padding:10px 16px;padding-bottom:max(12px,env(safe-area-inset-bottom));background:var(--bg-card);border-top:1px solid rgba(255,255,255,0.08);flex-shrink:0">
+        <div style="display:flex;gap:8px;align-items:flex-end">
           <textarea id="aw-input" placeholder="話しかけてみて..." rows="1"
-            style="flex:1;min-height:40px;max-height:100px;resize:none;font-size:0.9rem;
-                   padding:8px 12px;background:var(--bg-input);border:1px solid rgba(255,255,255,0.1);
-                   border-radius:8px;color:var(--text-primary);font-family:inherit"></textarea>
+            style="flex:1;min-width:0;min-height:44px;max-height:120px;resize:none;font-size:1rem;
+                   padding:10px 12px;background:var(--bg-input);border:1px solid rgba(255,255,255,0.1);
+                   border-radius:12px;color:var(--text-primary);font-family:inherit;line-height:1.4"></textarea>
           <button id="aw-send" class="btn btn-primary"
-            style="width:40px;min-height:40px;padding:0;font-size:1.1rem;flex-shrink:0">↑</button>
+            style="flex:0 0 44px;width:44px;height:44px;padding:0;font-size:1.2rem;border-radius:12px">↑</button>
         </div>
       </div>
     </div>

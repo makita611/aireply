@@ -1,5 +1,4 @@
 import { api, requireAuth } from './api.js';
-import { initChatWidget } from './chat-widget.js';
 
 if (!requireAuth()) throw new Error('unauthenticated');
 
@@ -73,7 +72,6 @@ async function init() {
   await Promise.all([loadCustomer(), loadLogs(), loadAiHistory()]);
   document.getElementById('log-date').value = new Date().toISOString().slice(0, 10);
   initAnalyzeBtn();
-  initChatWidget();
 }
 
 // ── 顧客ヘッダー + カルテ描画 ────────────────────
@@ -413,62 +411,85 @@ function parseSuggestions(text) {
   return [text.trim()];
 }
 
-function renderSuggestions(suggestions) {
-  suggestionsEl.innerHTML = suggestions.map((text, i) => `
-    <div class="suggestion-card card" style="margin-bottom:10px">
-      <div class="suggestion-text">${esc(text)}</div>
-      <div style="display:flex;gap:8px;justify-content:flex-end;margin-top:4px">
-        <button class="btn btn-secondary suggestion-refine" data-text="${esc(text)}"
-                style="font-size:0.78rem;padding:4px 12px;min-height:32px;width:auto">
-          ✏️ 修正
-        </button>
-        <button class="btn btn-primary suggestion-copy" data-text="${esc(text)}" data-idx="${i}"
-                style="font-size:0.8rem;padding:6px 16px;min-height:36px;width:auto">
-          コピー
-        </button>
-      </div>
-      <div class="refine-area hidden" style="margin-top:8px">
-        <input type="text" class="refine-input" placeholder="修正内容を入力（例: もっと短く、絵文字を増やす）">
-        <button class="btn btn-secondary refine-submit" data-text="${esc(text)}"
-                style="margin-top:6px;font-size:0.85rem">再生成する</button>
-      </div>
-    </div>`).join('');
+async function renderSuggestions(suggestions) {
+  suggestionsEl.innerHTML = '';
 
-  // コピーボタン
-  suggestionsEl.querySelectorAll('.suggestion-copy').forEach((btn) => {
-    btn.addEventListener('click', async () => {
-      await navigator.clipboard.writeText(btn.dataset.text);
-      btn.textContent = '✓ コピー済み';
-      btn.style.background = 'rgba(129,199,132,0.3)';
-      setTimeout(() => { btn.textContent = 'コピー'; btn.style.background = ''; }, 3000);
-      // 採用を記録
+  for (let i = 0; i < suggestions.length; i++) {
+    if (i > 0) await new Promise(r => setTimeout(r, 400));
+
+    const card = document.createElement('div');
+    card.className = 'suggestion-card card';
+    card.style.cssText = 'opacity:0;transform:translateY(10px);transition:opacity 0.35s ease,transform 0.35s ease';
+
+    // テキスト
+    const textEl = document.createElement('div');
+    textEl.className = 'suggestion-text';
+    textEl.textContent = suggestions[i];
+    card.appendChild(textEl);
+
+    // ボタン行（テキストの下）
+    const btnRow = document.createElement('div');
+    btnRow.className = 'suggestion-btns';
+
+    const refineBtn = document.createElement('button');
+    refineBtn.className = 'btn btn-secondary';
+    refineBtn.textContent = '✏️ 修正';
+
+    const copyBtn = document.createElement('button');
+    copyBtn.className = 'btn btn-primary';
+    copyBtn.textContent = '📋 コピー';
+
+    btnRow.appendChild(refineBtn);
+    btnRow.appendChild(copyBtn);
+    card.appendChild(btnRow);
+
+    // 修正入力エリア
+    const refineArea = document.createElement('div');
+    refineArea.className = 'refine-area hidden';
+    refineArea.style.marginTop = '10px';
+    const refineInput = document.createElement('input');
+    refineInput.type = 'text';
+    refineInput.placeholder = '修正内容（例: もっと短く、絵文字を増やす）';
+    const refineSubmit = document.createElement('button');
+    refineSubmit.className = 'btn btn-secondary';
+    refineSubmit.style.cssText = 'margin-top:6px;font-size:0.85rem';
+    refineSubmit.textContent = '再生成する';
+    refineArea.appendChild(refineInput);
+    refineArea.appendChild(refineSubmit);
+    card.appendChild(refineArea);
+
+    suggestionsEl.appendChild(card);
+
+    // フェードイン
+    requestAnimationFrame(() => { card.style.opacity = '1'; card.style.transform = 'translateY(0)'; });
+
+    // コピーイベント
+    const idx = i;
+    const rawText = suggestions[i];
+    copyBtn.addEventListener('click', async () => {
+      await navigator.clipboard.writeText(rawText);
+      copyBtn.textContent = '✓ コピー済み';
+      copyBtn.style.background = 'rgba(129,199,132,0.3)';
+      setTimeout(() => { copyBtn.textContent = '📋 コピー'; copyBtn.style.background = ''; }, 3000);
       if (currentLogId) {
         api(`/api/ai/logs/${currentLogId}`, {
           method: 'PUT',
-          body: JSON.stringify({ selected_index: Number(btn.dataset.idx) }),
+          body: JSON.stringify({ selected_index: idx }),
         }).then(() => loadAiHistory()).catch(() => {});
       }
     });
-  });
 
-  // 修正ボタン
-  suggestionsEl.querySelectorAll('.suggestion-refine').forEach((btn) => {
-    btn.addEventListener('click', () => {
-      const area = btn.closest('.suggestion-card').querySelector('.refine-area');
-      area.classList.toggle('hidden');
-    });
-  });
+    // 修正トグル
+    refineBtn.addEventListener('click', () => refineArea.classList.toggle('hidden'));
 
-  // 再生成ボタン
-  suggestionsEl.querySelectorAll('.refine-submit').forEach((btn) => {
-    btn.addEventListener('click', () => {
-      const input = btn.previousElementSibling;
-      const note = input.value.trim();
-      if (!note) { input.placeholder = '修正内容を入力してください'; return; }
+    // 再生成
+    refineSubmit.addEventListener('click', () => {
+      const note = refineInput.value.trim();
+      if (!note) { refineInput.placeholder = '修正内容を入力してください'; return; }
       document.getElementById('ai-context').value = note;
-      runGenerate(btn.dataset.text);
+      runGenerate(rawText);
     });
-  });
+  }
 }
 
 // 採用返信の履歴を読み込み・表示
