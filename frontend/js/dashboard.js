@@ -168,10 +168,24 @@ function esc(str) {
 loadCustomers();
 initConcierge();
 initChatWidget();
+syncConciergeAvatar();
 
 document.getElementById('inline-chat-bar').addEventListener('click', () => {
   openChatPanel('');
 });
+
+function syncConciergeAvatar() {
+  const el = document.getElementById('concierge-avatar-icon');
+  if (!el) return;
+  const cached = localStorage.getItem('aireply_avatar');
+  if (cached) el.textContent = cached;
+  api('/api/cast/settings').then(data => {
+    if (data.chat_avatar) {
+      localStorage.setItem('aireply_avatar', data.chat_avatar);
+      el.textContent = data.chat_avatar;
+    }
+  }).catch(() => {});
+}
 
 // ────────────────────────────────────────────────────
 // AI コンシェルジュ（挨拶 + 要連絡カード）

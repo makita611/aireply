@@ -34,8 +34,7 @@
   <div id="concierge-card" style="margin:12px 16px 0;padding:14px 16px;background:linear-gradient(135deg,#1a1a2e,#16213e);border:1px solid rgba(212,175,55,0.3);border-radius:12px">
     <!-- アバター＋挨拶 -->
     <div style="display:flex;align-items:flex-start;gap:12px;margin-bottom:8px">
-      <img src="/img/airipu-avatar.svg" width="52" height="52"
-           style="border-radius:50%;flex-shrink:0;border:1.5px solid rgba(212,175,55,0.45)">
+      <span id="concierge-avatar-icon" style="font-size:2.8rem;line-height:1;flex-shrink:0;display:flex;align-items:center;justify-content:center;width:52px;height:52px;background:rgba(255,255,255,0.06);border-radius:50%;border:1.5px solid rgba(212,175,55,0.45)">🌸</span>
       <div style="flex:1;min-width:0">
         <div style="font-size:0.7rem;color:var(--accent-gold);margin-bottom:2px;letter-spacing:0.05em">AI秘書 アイリプ</div>
         <div id="concierge-greeting" style="font-size:0.95rem;line-height:1.6;color:var(--text-primary)">読み込み中...</div>
@@ -50,6 +49,16 @@
       <span style="flex:1;text-align:left;color:var(--text-secondary);font-size:0.88rem">アイリプに話しかける...</span>
       <span style="font-size:1rem">💬</span>
     </button>
+  </div>
+
+  <!-- お知らせバナー -->
+  <div onclick="location.href='/notice'"
+    style="margin:8px 16px 0;padding:10px 14px;background:rgba(212,175,55,0.07);
+           border:1px solid rgba(212,175,55,0.22);border-radius:10px;cursor:pointer;
+           display:flex;align-items:center;gap:10px">
+    <span style="font-size:1rem">📢</span>
+    <span style="font-size:0.88rem;color:var(--text-primary);flex:1">お知らせ・修正要望はこちら</span>
+    <span style="color:var(--accent-gold);font-size:1rem">›</span>
   </div>
 
   <!-- チャットウィジェット・記憶管理はchat-widget.jsが動的に注入 -->

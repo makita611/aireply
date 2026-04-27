@@ -624,6 +624,9 @@ async function loadLogs() {
       const drinkInfo = l.drink_ordered && l.log_type === '来店'
         ? `<span style="color:var(--accent-gold);font-size:0.8rem;margin-left:8px">🍶 ${esc(l.drink_ordered)}</span>`
         : '';
+      const revenueInfo = l.revenue
+        ? `<span style="color:var(--accent-gold);font-size:0.8rem;margin-left:8px">💴 ¥${Number(l.revenue).toLocaleString()}</span>`
+        : '';
       return `
         <div class="log-item" data-log-id="${l.id}">
           <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:8px">
@@ -631,7 +634,7 @@ async function loadLogs() {
               <div class="log-date">
                 ${icon} <strong>${esc(l.log_type)}</strong>
                 <span style="margin-left:8px;color:var(--text-secondary)">${l.log_date}</span>
-                ${drinkInfo}
+                ${drinkInfo}${revenueInfo}
               </div>
               <div class="log-memo" style="margin-top:4px">${esc(l.memo) || '<span style="color:var(--text-secondary);font-size:0.85rem">メモなし</span>'}</div>
             </div>
@@ -730,10 +733,11 @@ document.getElementById('log-type').addEventListener('change', (e) => {
 });
 
 document.getElementById('log-submit').addEventListener('click', async () => {
-  const date  = document.getElementById('log-date').value;
-  const type  = document.getElementById('log-type').value;
-  const memo  = document.getElementById('log-memo').value.trim();
-  const drink = document.getElementById('log-drink').value.trim();
+  const date    = document.getElementById('log-date').value;
+  const type    = document.getElementById('log-type').value;
+  const memo    = document.getElementById('log-memo').value.trim();
+  const drink   = document.getElementById('log-drink').value.trim();
+  const revenue = document.getElementById('log-revenue').value;
   if (!date) { alert('日にちを入力してください'); return; }
 
   const btn = document.getElementById('log-submit');
@@ -746,10 +750,12 @@ document.getElementById('log-submit').addEventListener('click', async () => {
         log_type: type,
         memo: memo || null,
         drink_ordered: type === '来店' ? (drink || null) : null,
+        revenue: revenue ? Number(revenue) : null,
       }),
     });
-    document.getElementById('log-memo').value  = '';
-    document.getElementById('log-drink').value = '';
+    document.getElementById('log-memo').value    = '';
+    document.getElementById('log-drink').value   = '';
+    document.getElementById('log-revenue').value = '';
     await loadLogs();
   } catch (err) {
     alert(err.message);

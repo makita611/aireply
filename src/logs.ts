@@ -92,11 +92,12 @@ export async function handleUpdateLog(
   ).bind(logId, customerId, castId).first();
   if (!exists) return json({ error: '見つかりません' }, 404);
 
-  const { log_date, log_type, memo, drink_ordered } = (await request.json()) as {
+  const { log_date, log_type, memo, drink_ordered, revenue } = (await request.json()) as {
     log_date?: string;
     log_type?: string;
     memo?: string;
     drink_ordered?: string;
+    revenue?: number;
   };
 
   if (log_date && !/^\d{4}-\d{2}-\d{2}$/.test(log_date)) {
@@ -111,9 +112,10 @@ export async function handleUpdateLog(
      SET log_date       = COALESCE(?, log_date),
          log_type       = COALESCE(?, log_type),
          memo           = COALESCE(?, memo),
-         drink_ordered  = COALESCE(?, drink_ordered)
+         drink_ordered  = COALESCE(?, drink_ordered),
+         revenue        = COALESCE(?, revenue)
      WHERE id = ?`
-  ).bind(log_date ?? null, type ?? null, memo ?? null, drink_ordered ?? null, logId).run();
+  ).bind(log_date ?? null, type ?? null, memo ?? null, drink_ordered ?? null, revenue ?? null, logId).run();
 
   return json({ ok: true });
 }

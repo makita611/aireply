@@ -1,0 +1,1 @@
+ALTER TABLE visit_logs ADD COLUMN amount INTEGER;
