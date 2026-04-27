@@ -312,13 +312,22 @@ async function runGenerate(refineText = null) {
     context = `【修正依頼】元の文章: "${refineText}" / 修正内容: ${context || '自然に改善してください'}`;
   }
 
-  // ストリーミング表示エリアを設定
-  suggestionsEl.innerHTML = `
-    <div style="background:var(--bg-input);border-radius:10px;padding:14px;margin-bottom:10px;min-height:60px">
-      <div style="font-size:0.72rem;color:var(--accent-gold);margin-bottom:6px">AIがカルテを確認中... ✨</div>
-      <div id="stream-text" style="font-size:0.9rem;line-height:1.7;white-space:pre-wrap;color:var(--text-primary)"></div>
-    </div>`;
-  const streamText = document.getElementById('stream-text');
+  // 3枚のカードスロットを先に作成（streaming中に順番に埋まる）
+  suggestionsEl.innerHTML = '';
+  const slots = [0, 1, 2].map(i => {
+    const card = document.createElement('div');
+    card.className = 'suggestion-card card';
+    card.style.cssText = `opacity:${i === 0 ? '1' : '0'};transform:translateY(${i === 0 ? '0' : '8px'});transition:opacity 0.3s,transform 0.3s;min-height:54px`;
+    const textEl = document.createElement('div');
+    textEl.className = 'suggestion-text';
+    textEl.style.color = 'var(--text-secondary)';
+    textEl.innerHTML = i === 0
+      ? '<span class="spinner" style="width:12px;height:12px;display:inline-block;vertical-align:middle;margin-right:6px"></span>生成中...'
+      : '待機中...';
+    card.appendChild(textEl);
+    suggestionsEl.appendChild(card);
+    return card;
+  });
 
   const token = localStorage.getItem('castline_token');
   const BASE_URL = location.hostname === 'localhost' || location.hostname === '127.0.0.1'
@@ -338,13 +347,12 @@ async function runGenerate(refineText = null) {
 
     const reader  = res.body.getReader();
     const decoder = new TextDecoder();
-    let buf = '', accumulated = '', phaseShown = false;
+    let buf = '', accumulated = '';
 
     while (true) {
       const { done, value } = await reader.read();
       if (done) break;
       buf += decoder.decode(value, { stream: true });
-
       const lines = buf.split('\n');
       buf = lines.pop() || '';
 
@@ -355,32 +363,25 @@ async function runGenerate(refineText = null) {
         try {
           const data = JSON.parse(raw);
 
-          // text_chunk: 文字が流れる
+          // text_chunk: 文字が届くたびにカードを更新
           if (data.event === 'text_chunk' && data.data?.text) {
-            if (!phaseShown) {
-              streamText.closest('div').querySelector('div').textContent = 'AIが返信を考え中... ✍️';
-              phaseShown = true;
-            }
             accumulated += data.data.text;
-            streamText.textContent = accumulated;
+            updateSlots(accumulated, slots);
           }
 
-          // workflow_finished: 完了 → JSONをパースして3枚のカードに
+          // workflow_finished: 確定テキストでカードをFinalize
           if (data.event === 'workflow_finished') {
             const outputs = data.data?.outputs ?? {};
             const rawText =
-              outputs['text'] ||
-              outputs['result'] ||
+              outputs['text'] || outputs['result'] ||
               Object.values(outputs).find(v => typeof v === 'string') || accumulated;
             if (rawText) {
-              // blocking APIでlog_idを取得して保存（バックグラウンド）
               api('/api/ai/generate', {
                 method: 'POST',
                 body: JSON.stringify({ customer_id: customerId, tone: selectedTone, additional_context: context }),
               }).then(r => { if (r?.log_id) currentLogId = r.log_id; loadAiHistory(); }).catch(() => {});
-
               const suggestions = parseSuggestions(String(rawText));
-              renderSuggestions(suggestions);
+              finalizeSlots(slots, suggestions);
             }
           }
         } catch {}
@@ -411,77 +412,112 @@ function parseSuggestions(text) {
   return [text.trim()];
 }
 
-function makeSuggestionCard(text, idx) {
-  const card = document.createElement('div');
-  card.className = 'suggestion-card card';
-  card.style.cssText = 'opacity:0;transform:translateY(8px);transition:opacity 0.25s ease,transform 0.25s ease';
+// streaming中: text_chunkが届くたびにカードを更新
+function updateSlots(accumulated, slots) {
+  const trimmed = accumulated.trim();
 
-  const textEl = document.createElement('div');
-  textEl.className = 'suggestion-text';
-  textEl.textContent = text;
-  card.appendChild(textEl);
+  // JSON形式の場合はカード1に「生成中」表示のみ（完了後に確定）
+  if (trimmed.startsWith('[') || trimmed.startsWith('{')) return;
 
-  const btnRow = document.createElement('div');
-  btnRow.className = 'suggestion-btns';
+  // === または --- で分割してリアルタイム更新
+  const parts = accumulated.split(/\n?={3,}\n?|\n?-{3,}\n?/);
 
-  const refineBtn = document.createElement('button');
-  refineBtn.className = 'btn btn-secondary';
-  refineBtn.textContent = '✏️ 修正';
+  for (let i = 0; i < Math.min(parts.length, 3); i++) {
+    const part = parts[i];
+    const card = slots[i];
+    const textEl = card.querySelector('.suggestion-text');
 
-  const copyBtn = document.createElement('button');
-  copyBtn.className = 'btn btn-primary';
-  copyBtn.textContent = '📋 コピー';
+    // カードを表示
+    card.style.opacity = '1';
+    card.style.transform = 'translateY(0)';
+    textEl.style.color = 'var(--text-primary)';
+    textEl.textContent = part;
 
-  btnRow.appendChild(refineBtn);
-  btnRow.appendChild(copyBtn);
-  card.appendChild(btnRow);
-
-  const refineArea = document.createElement('div');
-  refineArea.className = 'refine-area hidden';
-  refineArea.style.marginTop = '10px';
-  const refineInput = document.createElement('input');
-  refineInput.type = 'text';
-  refineInput.placeholder = '修正内容（例: もっと短く、絵文字を増やす）';
-  const refineSubmit = document.createElement('button');
-  refineSubmit.className = 'btn btn-secondary';
-  refineSubmit.style.cssText = 'margin-top:6px;font-size:0.85rem';
-  refineSubmit.textContent = '再生成する';
-  refineArea.appendChild(refineInput);
-  refineArea.appendChild(refineSubmit);
-  card.appendChild(refineArea);
-
-  copyBtn.addEventListener('click', async () => {
-    await navigator.clipboard.writeText(text);
-    copyBtn.textContent = '✓ コピー済み';
-    copyBtn.style.background = 'rgba(129,199,132,0.3)';
-    setTimeout(() => { copyBtn.textContent = '📋 コピー'; copyBtn.style.background = ''; }, 3000);
-    if (currentLogId) {
-      api(`/api/ai/logs/${currentLogId}`, {
-        method: 'PUT',
-        body: JSON.stringify({ selected_index: idx }),
-      }).then(() => loadAiHistory()).catch(() => {});
+    // 次のカードが「待機中」のままなら「生成中」に切り替え
+    if (i < parts.length - 1 && i + 1 < 3) {
+      const next = slots[i + 1];
+      next.style.opacity = '0.6';
+      next.style.transform = 'translateY(0)';
+      const nextText = next.querySelector('.suggestion-text');
+      if (nextText.textContent === '待機中...') {
+        nextText.innerHTML = '<span class="spinner" style="width:12px;height:12px;display:inline-block;vertical-align:middle;margin-right:6px"></span>生成中...';
+      }
     }
-  });
-
-  refineBtn.addEventListener('click', () => refineArea.classList.toggle('hidden'));
-
-  refineSubmit.addEventListener('click', () => {
-    const note = refineInput.value.trim();
-    if (!note) { refineInput.placeholder = '修正内容を入力してください'; return; }
-    document.getElementById('ai-context').value = note;
-    runGenerate(text);
-  });
-
-  return card;
+  }
 }
 
-function renderSuggestions(suggestions) {
-  suggestionsEl.innerHTML = '';
+// workflow_finished後: 確定テキストでカードを完成させてボタンを追加
+function finalizeSlots(slots, suggestions) {
+  // 余分なスロットを削除
+  for (let i = suggestions.length; i < slots.length; i++) slots[i].remove();
+
   suggestions.forEach((text, i) => {
-    const card = makeSuggestionCard(text, i);
-    suggestionsEl.appendChild(card);
-    // 小さなstaggerで1枚ずつフェードイン（待ち時間なし）
-    setTimeout(() => { card.style.opacity = '1'; card.style.transform = 'translateY(0)'; }, i * 60);
+    const card = slots[i];
+    if (!card) return;
+
+    card.style.opacity = '1';
+    card.style.transform = 'translateY(0)';
+
+    const textEl = card.querySelector('.suggestion-text');
+    textEl.textContent = text;
+    textEl.style.color = 'var(--text-primary)';
+
+    // ボタン行を追加（既存があれば削除）
+    card.querySelector('.suggestion-btns')?.remove();
+    const btnRow = document.createElement('div');
+    btnRow.className = 'suggestion-btns';
+
+    const refineBtn = document.createElement('button');
+    refineBtn.className = 'btn btn-secondary';
+    refineBtn.textContent = '✏️ 修正';
+
+    const copyBtn = document.createElement('button');
+    copyBtn.className = 'btn btn-primary';
+    copyBtn.textContent = '📋 コピー';
+
+    btnRow.appendChild(refineBtn);
+    btnRow.appendChild(copyBtn);
+    card.appendChild(btnRow);
+
+    // 修正エリア
+    const refineArea = document.createElement('div');
+    refineArea.className = 'refine-area hidden';
+    refineArea.style.marginTop = '10px';
+    const refineInput = document.createElement('input');
+    refineInput.type = 'text';
+    refineInput.placeholder = '修正内容（例: もっと短く、絵文字を増やす）';
+    const refineSubmit = document.createElement('button');
+    refineSubmit.className = 'btn btn-secondary';
+    refineSubmit.style.cssText = 'margin-top:6px;font-size:0.85rem';
+    refineSubmit.textContent = '再生成する';
+    refineArea.appendChild(refineInput);
+    refineArea.appendChild(refineSubmit);
+    card.appendChild(refineArea);
+
+    const rawText = text;
+    const idx = i;
+
+    copyBtn.addEventListener('click', async () => {
+      await navigator.clipboard.writeText(rawText);
+      copyBtn.textContent = '✓ コピー済み';
+      copyBtn.style.background = 'rgba(129,199,132,0.3)';
+      setTimeout(() => { copyBtn.textContent = '📋 コピー'; copyBtn.style.background = ''; }, 3000);
+      if (currentLogId) {
+        api(`/api/ai/logs/${currentLogId}`, {
+          method: 'PUT',
+          body: JSON.stringify({ selected_index: idx }),
+        }).then(() => loadAiHistory()).catch(() => {});
+      }
+    });
+
+    refineBtn.addEventListener('click', () => refineArea.classList.toggle('hidden'));
+
+    refineSubmit.addEventListener('click', () => {
+      const note = refineInput.value.trim();
+      if (!note) { refineInput.placeholder = '修正内容を入力してください'; return; }
+      document.getElementById('ai-context').value = note;
+      runGenerate(rawText);
+    });
   });
 }
 

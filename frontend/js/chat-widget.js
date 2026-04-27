@@ -1,6 +1,6 @@
 /**
  * AI秘書チャットウィジェット
- * dashboard.html / customer.html 両方から import して使う
+ * dashboard.html から import して使う
  */
 import { api, getCastId } from './api.js';
 
@@ -9,13 +9,14 @@ const BASE_URL = location.hostname === 'localhost' || location.hostname === '127
   : 'https://aireply.aidbase11.workers.dev';
 
 const STORAGE_CID = `aireply_cid_${getCastId()}`;
-const AVATAR_IMG = `<img src="/img/airipu-avatar.svg" style="width:100%;height:100%;border-radius:50%;display:block">`;
 
+let chatAvatar = localStorage.getItem('aireply_avatar') || '🌸';
 let chatExpanded = false;
 let _openChatFn = null;
 
 export function initChatWidget() {
   injectHTML();
+  loadAvatar();
   bindEvents();
 }
 
@@ -23,33 +24,46 @@ export function openChatPanel(initialMessage = '') {
   if (_openChatFn) _openChatFn(initialMessage);
 }
 
+// 設定からアバターを読み込む
+async function loadAvatar() {
+  try {
+    const data = await api('/api/cast/settings');
+    if (data.chat_avatar) {
+      chatAvatar = data.chat_avatar;
+      localStorage.setItem('aireply_avatar', chatAvatar);
+      document.getElementById('aw-btn-icon').textContent = chatAvatar;
+      document.getElementById('aw-header-icon').textContent = chatAvatar;
+    }
+  } catch {}
+}
+
 // ── HTML を body に注入 ─────────────────────────────
 function injectHTML() {
-  if (document.getElementById('aw-panel')) return; // 二重初期化防止
+  if (document.getElementById('aw-panel')) return;
 
   document.body.insertAdjacentHTML('beforeend', `
     <!-- チャット起動ボタン -->
     <button id="aw-btn" title="AI秘書に話しかける"
       style="position:fixed;bottom:84px;right:20px;width:52px;height:52px;border-radius:50%;
              background:var(--bg-card);border:2px solid rgba(212,175,55,0.5);
-             padding:3px;cursor:pointer;z-index:210;display:flex;align-items:center;justify-content:center;
-             box-shadow:0 4px 16px rgba(0,0,0,0.4)">
-      ${AVATAR_IMG}
+             font-size:1.6rem;cursor:pointer;z-index:210;display:flex;align-items:center;justify-content:center;
+             box-shadow:0 4px 16px rgba(0,0,0,0.4);padding:0">
+      <span id="aw-btn-icon">${chatAvatar}</span>
     </button>
 
-    <!-- チャットパネル（初期: 画面下半分、展開で全画面） -->
+    <!-- チャットパネル -->
     <div id="aw-panel" style="position:fixed;bottom:0;left:0;right:0;width:100%;max-width:100vw;height:52vh;
          background:var(--bg-primary);z-index:400;display:none;flex-direction:column;overflow:hidden;
          border-radius:20px 20px 0 0;box-shadow:0 -4px 30px rgba(0,0,0,0.5);
-         transition:height 0.3s ease, border-radius 0.3s ease">
-      <!-- ドラッグハンドル＋ヘッダー -->
-      <div style="background:var(--bg-card);border-radius:20px 20px 0 0;border-bottom:1px solid rgba(255,255,255,0.08)">
-        <!-- ドラッグハンドル（タップで拡大/縮小） -->
+         transition:height 0.3s ease,border-radius 0.3s ease">
+
+      <!-- ヘッダー -->
+      <div style="background:var(--bg-card);border-radius:20px 20px 0 0;border-bottom:1px solid rgba(255,255,255,0.08);flex-shrink:0">
         <div id="aw-resize-handle" style="display:flex;justify-content:center;padding:8px 0;cursor:pointer">
           <div style="width:40px;height:4px;background:rgba(255,255,255,0.2);border-radius:2px"></div>
         </div>
         <div style="display:flex;align-items:center;padding:0 16px 10px;gap:10px">
-          <div style="width:32px;height:32px;border-radius:50%;border:1.5px solid rgba(212,175,55,0.4);overflow:hidden;flex-shrink:0">${AVATAR_IMG}</div>
+          <span id="aw-header-icon" style="font-size:1.4rem;line-height:1">${chatAvatar}</span>
           <span class="brand" style="font-size:0.9rem">AI秘書 アイリプ</span>
           <div style="flex:1"></div>
           <button id="aw-expand-btn" style="background:none;border:none;color:var(--text-secondary);font-size:1rem;cursor:pointer;padding:4px" title="全画面">⤢</button>
@@ -98,61 +112,41 @@ function bindEvents() {
   const sendBtn    = document.getElementById('aw-send');
   const openBtn    = document.getElementById('aw-btn');
   const closeBtn   = document.getElementById('aw-close');
+  const expandBtn  = document.getElementById('aw-expand-btn');
+  const resizeHandle = document.getElementById('aw-resize-handle');
   const memBtn     = document.getElementById('aw-memory-btn');
   const memPanel   = document.getElementById('aw-memory-panel');
   const memClose   = document.getElementById('aw-mem-close');
   const memSave    = document.getElementById('aw-mem-save');
   const memList    = document.getElementById('aw-mem-list');
 
-  const expandBtn    = document.getElementById('aw-expand-btn');
-  const resizeHandle = document.getElementById('aw-resize-handle');
-
   function openPanel(fullScreen, initialMessage) {
     panel.style.display = 'flex';
     setExpanded(fullScreen);
     if (!messages.children.length) addSystemMsg('こんにちは！何でも話しかけてね💕');
-    if (initialMessage) {
-      input.value = initialMessage;
-      sendMessage();
-    }
+    if (initialMessage) { input.value = initialMessage; sendMessage(); }
     setTimeout(() => input.focus(), 100);
   }
 
   function setExpanded(expand) {
     chatExpanded = expand;
-    if (expand) {
-      panel.style.height = '100dvh';
-      panel.style.borderRadius = '0';
-      expandBtn.textContent = '⤡';
-    } else {
-      panel.style.height = '52vh';
-      panel.style.borderRadius = '20px 20px 0 0';
-      expandBtn.textContent = '⤢';
-    }
+    panel.style.height = expand ? '100dvh' : '52vh';
+    panel.style.borderRadius = expand ? '0' : '20px 20px 0 0';
+    expandBtn.textContent = expand ? '⤡' : '⤢';
   }
 
-  // 外部からチャット画面を開く（インラインチャット入力から呼ばれる）
   _openChatFn = (msg) => openPanel(true, msg);
 
-  // フローティングボタンで開く（下半分→続けると全画面）
   openBtn.addEventListener('click', () => openPanel(false, ''));
-
-  // 閉じる
   closeBtn.addEventListener('click', () => { panel.style.display = 'none'; });
-
-  // 拡大/縮小ボタン
   expandBtn.addEventListener('click', () => setExpanded(!chatExpanded));
-
-  // ハンドルをタップで拡大/縮小
   resizeHandle.addEventListener('click', () => setExpanded(!chatExpanded));
 
-  // メッセージが増えたら自動で拡大
   const msgObserver = new MutationObserver(() => {
     if (!chatExpanded && messages.children.length >= 4) setExpanded(true);
   });
   msgObserver.observe(messages, { childList: true });
 
-  // 記憶モーダル
   memBtn.addEventListener('click', () => { memPanel.classList.remove('hidden'); loadMemories(); });
   memClose.addEventListener('click', () => memPanel.classList.add('hidden'));
   memPanel.addEventListener('click', (e) => { if (e.target === memPanel) memPanel.classList.add('hidden'); });
@@ -166,7 +160,6 @@ function bindEvents() {
     memSave.disabled = false;
   });
 
-  // 送信
   input.addEventListener('keydown', (e) => {
     if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); sendMessage(); }
   });
@@ -211,11 +204,16 @@ function bindEvents() {
           if (raw === '[DONE]') continue;
           try {
             const data = JSON.parse(raw);
-            if (data.answer) { fullText += data.answer; aiBubble.textContent = fullText; messages.scrollTop = messages.scrollHeight; }
+            if (data.answer) {
+              fullText += data.answer;
+              aiBubble.textContent = fullText;
+              messages.scrollTop = messages.scrollHeight;
+            }
             if (data.conversation_id) localStorage.setItem(STORAGE_CID, data.conversation_id);
           } catch {}
         }
       }
+      if (!fullText) aiBubble.textContent = '（返信がありませんでした）';
     } catch (err) {
       aiBubble.textContent = `エラー: ${err.message}`;
       aiBubble.style.color = 'var(--accent-rose)';
@@ -228,12 +226,17 @@ function bindEvents() {
     const div = document.createElement('div');
     if (role === 'ai') {
       div.style.cssText = 'display:flex;align-items:flex-start;gap:8px;max-width:90%';
-      div.innerHTML = `<div style="width:28px;height:28px;border-radius:50%;overflow:hidden;flex-shrink:0;margin-top:4px;border:1px solid rgba(212,175,55,0.3)">${AVATAR_IMG}</div>
-        <div class="aw-text-bubble" style="background:var(--bg-card);color:var(--text-primary);padding:10px 14px;
-                    border-radius:0 16px 16px 16px;font-size:0.95rem;line-height:1.6;flex:1;min-height:44px;word-break:break-word"></div>`;
+      const iconSpan = document.createElement('span');
+      iconSpan.style.cssText = 'font-size:1.4rem;flex-shrink:0;margin-top:2px;line-height:1';
+      iconSpan.textContent = chatAvatar;
+      const bubble = document.createElement('div');
+      bubble.className = 'aw-text-bubble';
+      bubble.style.cssText = 'background:var(--bg-card);color:var(--text-primary);padding:10px 14px;border-radius:0 16px 16px 16px;font-size:0.95rem;line-height:1.6;flex:1;min-height:44px;word-break:break-word';
+      div.appendChild(iconSpan);
+      div.appendChild(bubble);
       messages.appendChild(div);
       messages.scrollTop = messages.scrollHeight;
-      return div.querySelector('.aw-text-bubble');
+      return bubble;
     } else {
       div.style.cssText = 'align-self:flex-end;max-width:85%;padding:10px 14px;border-radius:16px 16px 4px 16px;background:linear-gradient(135deg,#d4af37,#b8902a);color:#0d0d1a;font-size:0.9rem;line-height:1.6';
       div.textContent = text;
@@ -253,7 +256,10 @@ function bindEvents() {
   async function loadMemories() {
     memList.innerHTML = '<div class="loading"><div class="spinner"></div></div>';
     const mems = await api('/api/memories');
-    if (!mems.length) { memList.innerHTML = '<div class="text-secondary" style="font-size:0.82rem">まだ記憶がありません</div>'; return; }
+    if (!mems.length) {
+      memList.innerHTML = '<div class="text-secondary" style="font-size:0.82rem">まだ記憶がありません</div>';
+      return;
+    }
     memList.innerHTML = mems.map(m => `
       <div style="display:flex;align-items:center;gap:8px;padding:8px 0;border-bottom:1px solid rgba(255,255,255,0.06)">
         <div style="flex:1;font-size:0.85rem">${esc(m.content)}</div>
