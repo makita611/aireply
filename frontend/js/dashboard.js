@@ -1,4 +1,5 @@
 import { api, requireAuth, getCastId } from './api.js';
+import { initChatWidget } from './chat-widget.js';
 
 if (!requireAuth()) throw new Error('unauthenticated');
 
@@ -166,8 +167,7 @@ function esc(str) {
 
 loadCustomers();
 initConcierge();
-initChat();
-initMemory();
+initChatWidget();
 
 // ────────────────────────────────────────────────────
 // AI コンシェルジュ（挨拶 + 要連絡カード）
@@ -203,11 +203,9 @@ async function initConcierge() {
 }
 
 // ────────────────────────────────────────────────────
-// チャット（ストリーミング）
+// チャットはchat-widget.jsに移行済み
 // ────────────────────────────────────────────────────
-const STORAGE_KEY = `aireply_cid_${getCastId()}`;
-
-function initChat() {
+function _deprecated_initChat() {
   const panel    = document.getElementById('chat-panel');
   const openBtn  = document.getElementById('chat-open-btn');
   const closeBtn = document.getElementById('chat-close-btn');
@@ -314,9 +312,9 @@ function initChat() {
 }
 
 // ────────────────────────────────────────────────────
-// 長期記憶管理
+// 長期記憶管理（chat-widget.jsに移行済み）
 // ────────────────────────────────────────────────────
-function initMemory() {
+function _deprecated_initMemory() {
   const modal     = document.getElementById('memory-modal');
   const openBtn   = document.getElementById('memory-btn');
   const closeBtn  = document.getElementById('memory-close-btn');

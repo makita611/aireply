@@ -87,6 +87,87 @@ export async function handleGenerate(
   return json({ suggestions, log_id: logId });
 }
 
+// ── POST /api/ai/generate-stream （ストリーミング生成） ─
+export async function handleGenerateStream(
+  request: Request,
+  castId: string,
+  env: Env
+): Promise<Response> {
+  const origin = request.headers.get('Origin');
+  const { customer_id, tone, additional_context } = (await request.json()) as {
+    customer_id?: string;
+    tone?: string;
+    additional_context?: string;
+  };
+
+  if (!customer_id || !tone) {
+    return json({ error: 'customer_id と tone は必須です' }, 400);
+  }
+
+  const customer = await env.DB.prepare(
+    'SELECT * FROM customers WHERE id = ? AND cast_id = ?'
+  ).bind(customer_id, castId).first<Record<string, unknown>>();
+  if (!customer) return json({ error: '顧客が見つかりません' }, 404);
+
+  const { results: logs } = await env.DB.prepare(
+    `SELECT log_date, log_type, memo, drink_ordered FROM visit_logs
+     WHERE customer_id = ? AND cast_id = ? ORDER BY log_date DESC LIMIT 3`
+  ).bind(customer_id, castId).all();
+
+  const cast = await env.DB.prepare(
+    'SELECT stage_name, character_prompt, sample_lines FROM casts WHERE id = ?'
+  ).bind(castId).first<{ stage_name: string; character_prompt: string; sample_lines: string }>();
+
+  const controller = new AbortController();
+  const timeout = setTimeout(() => controller.abort(), 30000);
+
+  let difyRes: globalThis.Response;
+  try {
+    difyRes = await fetch(`${env.DIFY_BASE_URL}/workflows/run`, {
+      method: 'POST',
+      headers: {
+        Authorization: `Bearer ${env.DIFY_API_KEY}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        inputs: {
+          cast_character: cast?.character_prompt ?? '',
+          customer_profile: JSON.stringify(customer),
+          recent_logs: JSON.stringify(logs),
+          tone,
+          additional_context: additional_context ?? '',
+        },
+        response_mode: 'streaming',
+        user: castId,
+      }),
+      signal: controller.signal,
+    });
+  } finally {
+    clearTimeout(timeout);
+  }
+
+  if (!difyRes.ok) {
+    const errBody = await difyRes.text().catch(() => '');
+    return json({ error: `Dify APIエラー: ${difyRes.status} ${errBody}` }, 502);
+  }
+
+  const corsH: Record<string, string> = {
+    'Access-Control-Allow-Origin': origin ?? '*',
+    'Access-Control-Allow-Methods': 'POST, OPTIONS',
+    'Access-Control-Allow-Headers': 'Content-Type, Authorization',
+  };
+
+  // ストリームをそのままプロキシ
+  return new Response(difyRes.body, {
+    headers: {
+      'Content-Type': 'text/event-stream',
+      'Cache-Control': 'no-cache',
+      'X-Accel-Buffering': 'no',
+      ...corsH,
+    },
+  });
+}
+
 // ── PUT /api/ai/logs/:logId （採用返信を記録） ────────
 export async function handleSelectReply(
   request: Request,

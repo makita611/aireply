@@ -1,4 +1,5 @@
 import { api, requireAuth } from './api.js';
+import { initChatWidget } from './chat-widget.js';
 
 if (!requireAuth()) throw new Error('unauthenticated');
 
@@ -72,6 +73,7 @@ async function init() {
   await Promise.all([loadCustomer(), loadLogs(), loadAiHistory()]);
   document.getElementById('log-date').value = new Date().toISOString().slice(0, 10);
   initAnalyzeBtn();
+  initChatWidget();
 }
 
 // ── 顧客ヘッダー + カルテ描画 ────────────────────
@@ -305,7 +307,6 @@ async function runGenerate(refineText = null) {
   }
   generateBtn.disabled = true;
   generateBtn.textContent = '考え中... ✨';
-  suggestionsEl.innerHTML = '<div class="loading"><div class="spinner"></div>AI返信を生成中...</div>';
 
   const contextEl = document.getElementById('ai-context');
   let context = contextEl.value.trim() || null;
@@ -313,13 +314,80 @@ async function runGenerate(refineText = null) {
     context = `【修正依頼】元の文章: "${refineText}" / 修正内容: ${context || '自然に改善してください'}`;
   }
 
+  // ストリーミング表示エリアを設定
+  suggestionsEl.innerHTML = `
+    <div style="background:var(--bg-input);border-radius:10px;padding:14px;margin-bottom:10px;min-height:60px">
+      <div style="font-size:0.72rem;color:var(--accent-gold);margin-bottom:6px">AIがカルテを確認中... ✨</div>
+      <div id="stream-text" style="font-size:0.9rem;line-height:1.7;white-space:pre-wrap;color:var(--text-primary)"></div>
+    </div>`;
+  const streamText = document.getElementById('stream-text');
+
+  const token = localStorage.getItem('castline_token');
+  const BASE_URL = location.hostname === 'localhost' || location.hostname === '127.0.0.1'
+    ? 'http://localhost:8787' : 'https://aireply.aidbase11.workers.dev';
+
   try {
-    const res = await api('/api/ai/generate', {
+    const res = await fetch(`${BASE_URL}/api/ai/generate-stream`, {
       method: 'POST',
+      headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
       body: JSON.stringify({ customer_id: customerId, tone: selectedTone, additional_context: context }),
     });
-    currentLogId = res.log_id;
-    renderSuggestions(res.suggestions);
+
+    if (!res.ok) {
+      const err = await res.json().catch(() => ({ error: `HTTP ${res.status}` }));
+      throw new Error(err.error);
+    }
+
+    const reader  = res.body.getReader();
+    const decoder = new TextDecoder();
+    let buf = '', accumulated = '', phaseShown = false;
+
+    while (true) {
+      const { done, value } = await reader.read();
+      if (done) break;
+      buf += decoder.decode(value, { stream: true });
+
+      const lines = buf.split('\n');
+      buf = lines.pop() || '';
+
+      for (const line of lines) {
+        if (!line.startsWith('data: ')) continue;
+        const raw = line.slice(6).trim();
+        if (!raw || raw === '[DONE]') continue;
+        try {
+          const data = JSON.parse(raw);
+
+          // text_chunk: 文字が流れる
+          if (data.event === 'text_chunk' && data.data?.text) {
+            if (!phaseShown) {
+              streamText.closest('div').querySelector('div').textContent = 'AIが返信を考え中... ✍️';
+              phaseShown = true;
+            }
+            accumulated += data.data.text;
+            streamText.textContent = accumulated;
+          }
+
+          // workflow_finished: 完了 → JSONをパースして3枚のカードに
+          if (data.event === 'workflow_finished') {
+            const outputs = data.data?.outputs ?? {};
+            const rawText =
+              (outputs['text'] as string | undefined) ||
+              (outputs['result'] as string | undefined) ||
+              Object.values(outputs).find(v => typeof v === 'string') || accumulated;
+            if (rawText) {
+              // blocking APIでlog_idを取得して保存（バックグラウンド）
+              api('/api/ai/generate', {
+                method: 'POST',
+                body: JSON.stringify({ customer_id: customerId, tone: selectedTone, additional_context: context }),
+              }).then(r => { if (r?.log_id) currentLogId = r.log_id; loadAiHistory(); }).catch(() => {});
+
+              const suggestions = parseSuggestions(String(rawText));
+              renderSuggestions(suggestions);
+            }
+          }
+        } catch {}
+      }
+    }
   } catch (err) {
     aiError.textContent = err.message;
     aiError.classList.remove('hidden');
@@ -328,6 +396,21 @@ async function runGenerate(refineText = null) {
     generateBtn.disabled = false;
     generateBtn.textContent = '返信を考える ✨';
   }
+}
+
+function parseSuggestions(text) {
+  const match = text.match(/\[[\s\S]*\]/);
+  if (match) {
+    try {
+      const arr = JSON.parse(match[0]);
+      if (Array.isArray(arr) && arr.every(v => typeof v === 'string')) return arr.slice(0, 3);
+    } catch {}
+  }
+  const byDelim = text.split(/\n?={3,}\n?|\n?-{3,}\n?/).map(s => s.trim()).filter(Boolean);
+  if (byDelim.length >= 2) return byDelim.slice(0, 3);
+  const byNum = text.split(/\n?\d+[\.\)]\s+/).map(s => s.trim()).filter(Boolean);
+  if (byNum.length >= 2) return byNum.slice(0, 3);
+  return [text.trim()];
 }
 
 function renderSuggestions(suggestions) {

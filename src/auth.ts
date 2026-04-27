@@ -138,7 +138,7 @@ export async function handleGetSettings(
   env: Env
 ): Promise<Response> {
   const cast = await env.DB.prepare(
-    'SELECT stage_name, character_prompt, sample_lines, shop_name, age, cast_hobbies FROM casts WHERE id = ?'
+    'SELECT stage_name, character_prompt, sample_lines, shop_name, age, cast_hobbies, chat_avatar FROM casts WHERE id = ?'
   )
     .bind(castId)
     .first();
@@ -153,7 +153,7 @@ export async function handleUpdateSettings(
   castId: string,
   env: Env
 ): Promise<Response> {
-  const { stage_name, character_prompt, sample_lines, shop_name, age, cast_hobbies } =
+  const { stage_name, character_prompt, sample_lines, shop_name, age, cast_hobbies, chat_avatar } =
     (await request.json()) as {
       stage_name?: string;
       character_prompt?: string;
@@ -161,12 +161,13 @@ export async function handleUpdateSettings(
       shop_name?: string;
       age?: number;
       cast_hobbies?: string;
+      chat_avatar?: string;
     };
 
   await env.DB.prepare(
     `UPDATE casts
      SET stage_name = ?, character_prompt = ?, sample_lines = ?,
-         shop_name = ?, age = ?, cast_hobbies = ?,
+         shop_name = ?, age = ?, cast_hobbies = ?, chat_avatar = ?,
          updated_at = datetime('now')
      WHERE id = ?`
   )
@@ -177,6 +178,7 @@ export async function handleUpdateSettings(
       shop_name ?? null,
       age ?? null,
       cast_hobbies ?? null,
+      chat_avatar ?? null,
       castId
     )
     .run();

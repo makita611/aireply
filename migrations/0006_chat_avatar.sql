@@ -1,0 +1,1 @@
+ALTER TABLE casts ADD COLUMN chat_avatar TEXT DEFAULT '🤖';
