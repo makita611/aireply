@@ -6,30 +6,734 @@
   <!-- End Google Tag Manager -->
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>アイリプ — キャバクラ・ホスト向けAI営業秘書</title>
-  <meta name="description" content="LINE返信をAIが自動生成。100人の関係を落とさず回す、ナイト系キャスト専用の営業OS。">
-  <link rel="stylesheet" href="/css/style.css?v=20260428">
+  <title>アイリプ — キャスト専用AI営業秘書</title>
+  <meta name="description" content="LINEの返信は、もう頑張らなくていい。売上を最大化する、あなただけのAI秘書。顧客3名まで完全無料。キャバクラ・ラウンジ嬢向けの営業AI秘書「アイリプ」。">
+  <meta property="og:type" content="website">
+  <meta property="og:url" content="https://ai-rp.link/">
+  <meta property="og:title" content="アイリプ — キャスト専用AI営業秘書">
+  <meta property="og:description" content="LINEの返信は、もう頑張らなくていい。売上を最大化する、あなただけのAI秘書。顧客3名まで完全無料。">
+  <meta property="og:image" content="https://ai-rp.link/img/ogp.png">
+  <meta property="og:site_name" content="アイリプ">
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="アイリプ — キャスト専用AI営業秘書">
+  <meta name="twitter:description" content="LINEの返信は、もう頑張らなくていい。売上を最大化する、あなただけのAI秘書。顧客3名まで完全無料。">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;700;900&display=swap" rel="stylesheet">
   <style>
-    body { display: flex; flex-direction: column; align-items: center; justify-content: center; min-height: 100dvh; padding: 40px 24px; text-align: center; }
-    .lp-logo { font-size: 3rem; margin-bottom: 8px; }
-    .lp-catch { font-size: 1.4rem; font-weight: 700; line-height: 1.4; margin-bottom: 12px; }
-    .lp-sub { font-size: 0.9rem; color: var(--text-secondary); margin-bottom: 40px; line-height: 1.7; }
-    .lp-btn { display: inline-flex; align-items: center; justify-content: center; background: linear-gradient(135deg, #d4af37, #b8902a); color: #0d0d1a; font-weight: 700; font-size: 1rem; padding: 16px 40px; border-radius: 50px; text-decoration: none; margin-bottom: 16px; width: 100%; max-width: 320px; }
-    .lp-login { font-size: 0.85rem; color: var(--text-secondary); }
-    .lp-login a { color: var(--accent-gold); }
+    /* ── リセット・基本 ── */
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root {
+      --gold:    #c9a227;
+      --gold-l:  #e8c85a;
+      --gold-d:  #a07a0a;
+      --dark:    #1a1108;
+      --gray:    #6b6b6b;
+      --light:   #fdf8f0;
+      --white:   #ffffff;
+      --rose:    #f0c0c0;
+      --radius:  16px;
+    }
+    html { scroll-behavior: smooth; }
+    body { font-family: 'Noto Sans JP', sans-serif; background: var(--white); color: var(--dark); line-height: 1.7; }
+    img { max-width: 100%; display: block; }
+    a { color: var(--gold-d); text-decoration: none; }
+
+    /* ── ヘッダー ── */
+    .lp-header {
+      position: fixed; top: 0; left: 0; right: 0; z-index: 100;
+      background: rgba(255,255,255,0.92); backdrop-filter: blur(8px);
+      border-bottom: 1px solid rgba(201,162,39,0.2);
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 12px 20px;
+    }
+    .lp-brand { font-size: 1.4rem; font-weight: 900; color: var(--gold-d); letter-spacing: 0.04em; }
+    .lp-header-cta {
+      background: linear-gradient(135deg, var(--gold), var(--gold-d));
+      color: var(--white); font-weight: 700; font-size: 0.82rem;
+      padding: 8px 18px; border-radius: 50px; white-space: nowrap;
+    }
+
+    /* ── セクション共通 ── */
+    .section { padding: 72px 20px; }
+    .section-inner { max-width: 480px; margin: 0 auto; }
+    .section-label {
+      font-size: 0.72rem; font-weight: 700; letter-spacing: 0.12em;
+      color: var(--gold); text-transform: uppercase; margin-bottom: 10px;
+    }
+    .section-title { font-size: 1.5rem; font-weight: 900; line-height: 1.4; margin-bottom: 16px; }
+    .section-body { font-size: 0.92rem; color: var(--gray); line-height: 1.8; }
+
+    /* ── CTAボタン ── */
+    .cta-btn {
+      display: flex; align-items: center; justify-content: center;
+      background: linear-gradient(135deg, var(--gold-l), var(--gold-d));
+      color: var(--white); font-weight: 900; font-size: 1.05rem;
+      padding: 18px 32px; border-radius: 50px; width: 100%;
+      box-shadow: 0 6px 24px rgba(201,162,39,0.35);
+      transition: transform 0.15s, box-shadow 0.15s;
+    }
+    .cta-btn:active { transform: scale(0.97); box-shadow: 0 2px 12px rgba(201,162,39,0.2); }
+    .cta-note { font-size: 0.72rem; color: var(--gray); text-align: center; margin-top: 8px; }
+
+    /* ── HERO ── */
+    .hero {
+      padding-top: 88px;
+      background: linear-gradient(160deg, #fffdf7 0%, #fdf3d8 60%, #fce8b0 100%);
+      min-height: 100svh; display: flex; flex-direction: column;
+    }
+    .hero-inner { max-width: 480px; margin: 0 auto; padding: 40px 20px 0; flex: 1; display: flex; flex-direction: column; }
+    .hero-eyebrow {
+      font-size: 0.72rem; font-weight: 700; letter-spacing: 0.14em;
+      color: var(--gold); text-transform: uppercase; margin-bottom: 16px;
+    }
+    .hero-title {
+      font-size: 1.85rem; font-weight: 900; line-height: 1.35;
+      color: var(--dark); margin-bottom: 16px;
+    }
+    .hero-title em { color: var(--gold-d); font-style: normal; }
+    .hero-sub { font-size: 0.9rem; color: var(--gray); margin-bottom: 32px; line-height: 1.8; }
+    .hero-cta-wrap { margin-bottom: 40px; }
+
+    /* ── スマホモック ── */
+    .phone-wrap { display: flex; justify-content: center; padding-bottom: 40px; }
+    .phone {
+      width: 220px; height: 420px;
+      background: #1a1a2e;
+      border-radius: 36px;
+      border: 6px solid #2d2d4e;
+      box-shadow: 0 20px 60px rgba(26,26,46,0.3), 0 0 0 1px rgba(255,255,255,0.1) inset;
+      overflow: hidden; position: relative;
+    }
+    .phone-notch {
+      width: 80px; height: 22px; background: #1a1a2e;
+      border-radius: 0 0 14px 14px;
+      position: absolute; top: 0; left: 50%; transform: translateX(-50%); z-index: 10;
+    }
+    .phone-screen { width: 100%; height: 100%; position: relative; overflow: hidden; }
+
+    /* スクリーン状態 */
+    .screen { position: absolute; inset: 0; padding: 28px 10px 10px; display: flex; flex-direction: column; gap: 6px; opacity: 0; transition: opacity 0.5s; }
+    .screen.active { opacity: 1; }
+
+    /* カルテ画面 */
+    .s-header { background: #2d2d4e; border-radius: 8px; padding: 6px 10px; display: flex; align-items: center; gap: 6px; }
+    .s-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--gold); flex-shrink: 0; }
+    .s-title-text { font-size: 0.55rem; color: #e0e0e0; font-weight: 700; }
+    .s-card { background: #16213e; border-radius: 8px; padding: 8px 10px; border: 1px solid rgba(212,175,55,0.2); }
+    .s-label { font-size: 0.42rem; color: #c9a227; margin-bottom: 3px; letter-spacing: 0.06em; }
+    .s-val { font-size: 0.52rem; color: #e0e0e0; line-height: 1.4; }
+
+    /* AI生成画面 */
+    .s-tone-row { display: flex; gap: 4px; }
+    .s-tone { background: #2d2d4e; border-radius: 6px; padding: 4px 6px; font-size: 0.42rem; color: #aaa; flex: 1; text-align: center; }
+    .s-tone.active { background: rgba(255,105,180,0.2); color: #ff69b4; border: 1px solid rgba(255,105,180,0.4); }
+    .s-btn { background: linear-gradient(135deg,#d4af37,#b8902a); border-radius: 6px; padding: 6px; font-size: 0.5rem; color: #0d0d1a; font-weight: 700; text-align: center; }
+
+    /* ストリーミング */
+    .s-stream-box { background: #16213e; border-radius: 8px; padding: 8px; border: 1px solid rgba(212,175,55,0.2); flex: 1; }
+    .s-stream-label { font-size: 0.4rem; color: #c9a227; margin-bottom: 4px; }
+    .s-stream-text { font-size: 0.48rem; color: #e0e0e0; line-height: 1.5; overflow: hidden; }
+
+    /* 提案カード */
+    .s-suggestion { background: #16213e; border-radius: 6px; padding: 6px 8px; border: 1px solid rgba(255,255,255,0.08); }
+    .s-suggestion-text { font-size: 0.44rem; color: #e0e0e0; line-height: 1.4; margin-bottom: 4px; }
+    .s-copy-btn { background: rgba(212,175,55,0.2); border-radius: 4px; padding: 2px 6px; font-size: 0.38rem; color: #d4af37; display: inline-block; }
+
+    /* タイピングアニメ */
+    @keyframes typing { from { width: 0; } to { width: 100%; } }
+    .typing { overflow: hidden; white-space: nowrap; border-right: 1px solid #c9a227; animation: typing 2s steps(40) forwards, blink 0.5s step-end infinite alternate; width: 0; }
+    @keyframes blink { 50% { border-color: transparent; } }
+    @keyframes fadeUp { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: translateY(0); } }
+
+    /* ── 悩み共感 ── */
+    .pain-section { background: var(--white); }
+    .pain-list { list-style: none; display: flex; flex-direction: column; gap: 16px; margin-top: 24px; }
+    .pain-item {
+      display: flex; align-items: flex-start; gap: 14px;
+      background: var(--light); border-radius: var(--radius);
+      padding: 16px; border-left: 4px solid var(--rose);
+    }
+    .pain-icon { font-size: 1.4rem; flex-shrink: 0; }
+    .pain-text { font-size: 0.9rem; color: var(--dark); line-height: 1.6; }
+    .pain-answer {
+      margin-top: 32px; text-align: center;
+      background: linear-gradient(135deg, #fce8b0, #fdf3d8);
+      border-radius: var(--radius); padding: 20px;
+      border: 1.5px solid rgba(201,162,39,0.4);
+    }
+    .pain-answer strong { font-size: 1.1rem; color: var(--gold-d); display: block; margin-bottom: 6px; }
+    .pain-answer span { font-size: 0.85rem; color: var(--gray); }
+
+    /* ── Before/After ── */
+    .ba-section { background: var(--light); }
+    .ba-wrap { display: flex; flex-direction: column; gap: 12px; margin-top: 24px; }
+    .ba-card { border-radius: var(--radius); padding: 16px; }
+    .ba-card.before { background: #f5f5f5; border: 1px solid #ddd; }
+    .ba-card.after { background: linear-gradient(135deg, #fce8b0, #fdf3d8); border: 1.5px solid rgba(201,162,39,0.5); }
+    .ba-label { font-size: 0.68rem; font-weight: 700; letter-spacing: 0.1em; margin-bottom: 8px; }
+    .ba-card.before .ba-label { color: #999; }
+    .ba-card.after .ba-label { color: var(--gold-d); }
+    .ba-bubble {
+      background: white; border-radius: 14px 14px 14px 4px;
+      padding: 12px 14px; font-size: 0.9rem; line-height: 1.7;
+      display: inline-block; max-width: 100%;
+    }
+    .ba-card.after .ba-bubble { background: #fff8e8; box-shadow: 0 2px 12px rgba(201,162,39,0.15); }
+    .ba-arrow { text-align: center; font-size: 1.4rem; color: var(--gold); }
+
+    /* ── 3つの強み ── */
+    .feature-section { background: var(--white); }
+    .feature-cards { display: flex; flex-direction: column; gap: 24px; margin-top: 32px; }
+    .feature-card {
+      background: var(--light);
+      border-radius: var(--radius);
+      padding: 24px 20px;
+      border: 1px solid rgba(201,162,39,0.2);
+    }
+    .feature-num {
+      width: 36px; height: 36px; border-radius: 50%;
+      background: linear-gradient(135deg, var(--gold-l), var(--gold-d));
+      color: white; font-weight: 900; font-size: 0.9rem;
+      display: flex; align-items: center; justify-content: center;
+      margin-bottom: 12px;
+    }
+    .feature-tag { font-size: 0.7rem; font-weight: 700; color: var(--gold); letter-spacing: 0.1em; margin-bottom: 6px; }
+    .feature-title { font-size: 1.1rem; font-weight: 900; margin-bottom: 10px; }
+    .feature-body { font-size: 0.88rem; color: var(--gray); line-height: 1.8; }
+
+    /* ── 3ステップ ── */
+    .step-section { background: linear-gradient(160deg, #fce8b0 0%, #fdf3d8 100%); }
+    .steps { display: flex; flex-direction: column; gap: 0; margin-top: 28px; position: relative; }
+    .steps::before {
+      content: ''; position: absolute; left: 20px; top: 0; bottom: 0;
+      width: 2px; background: linear-gradient(to bottom, var(--gold), var(--gold-d));
+      opacity: 0.3;
+    }
+    .step { display: flex; align-items: flex-start; gap: 16px; padding: 20px 0; }
+    .step-num {
+      width: 40px; height: 40px; border-radius: 50%; flex-shrink: 0;
+      background: linear-gradient(135deg, var(--gold-l), var(--gold-d));
+      color: white; font-weight: 900; font-size: 1rem;
+      display: flex; align-items: center; justify-content: center;
+      box-shadow: 0 4px 16px rgba(201,162,39,0.4); z-index: 1;
+    }
+    .step-content {}
+    .step-title { font-size: 1rem; font-weight: 900; margin-bottom: 4px; }
+    .step-body { font-size: 0.85rem; color: var(--gray); line-height: 1.7; }
+
+    /* ── 料金 ── */
+    .price-section { background: var(--white); }
+    .price-cards { display: flex; flex-direction: column; gap: 16px; margin-top: 28px; }
+    .price-card {
+      border-radius: var(--radius); padding: 24px 20px;
+      border: 2px solid #e8e8e8;
+    }
+    .price-card.featured {
+      border-color: var(--gold);
+      background: linear-gradient(160deg, #fffdf7, #fdf3d8);
+      position: relative;
+    }
+    .price-badge {
+      position: absolute; top: -12px; left: 20px;
+      background: linear-gradient(135deg, var(--gold-l), var(--gold-d));
+      color: white; font-size: 0.68rem; font-weight: 700;
+      padding: 4px 14px; border-radius: 50px;
+    }
+    .price-plan { font-size: 0.75rem; font-weight: 700; letter-spacing: 0.1em; color: var(--gold); margin-bottom: 4px; }
+    .price-amount { font-size: 2.4rem; font-weight: 900; color: var(--dark); margin-bottom: 4px; }
+    .price-amount span { font-size: 0.9rem; color: var(--gray); }
+    .price-desc { font-size: 0.8rem; color: var(--gray); margin-bottom: 16px; }
+    .price-features { list-style: none; display: flex; flex-direction: column; gap: 8px; }
+    .price-features li { font-size: 0.88rem; display: flex; align-items: center; gap: 8px; }
+    .price-features li::before { content: '✓'; color: var(--gold); font-weight: 900; }
+    .price-features li.muted { color: var(--gray); }
+    .price-features li.muted::before { content: '–'; color: #ccc; }
+
+    /* ── FAQ ── */
+    .faq-section { background: var(--light); }
+    .faq-list { display: flex; flex-direction: column; gap: 12px; margin-top: 28px; }
+    .faq-item { background: white; border-radius: var(--radius); padding: 20px; border: 1px solid rgba(201,162,39,0.15); }
+    .faq-q { font-size: 0.92rem; font-weight: 700; color: var(--dark); margin-bottom: 10px; display: flex; gap: 10px; align-items: flex-start; }
+    .faq-q::before { content: 'Q'; color: var(--gold); font-weight: 900; font-size: 1rem; flex-shrink: 0; }
+    .faq-a { font-size: 0.85rem; color: var(--gray); line-height: 1.75; display: flex; gap: 10px; }
+    .faq-a::before { content: 'A'; color: var(--gold-d); font-weight: 900; font-size: 1rem; flex-shrink: 0; }
+
+    /* ── 最終CTA ── */
+    .final-cta { background: linear-gradient(160deg, #1a1108 0%, #2d1e06 100%); padding: 60px 20px; text-align: center; }
+    .final-cta-inner { max-width: 480px; margin: 0 auto; }
+    .final-cta h2 { font-size: 1.5rem; font-weight: 900; color: white; margin-bottom: 12px; line-height: 1.4; }
+    .final-cta p { font-size: 0.85rem; color: rgba(255,255,255,0.6); margin-bottom: 32px; }
+
+    /* ── フッター ── */
+    footer { background: #111; padding: 24px 20px; text-align: center; }
+    footer p { font-size: 0.72rem; color: #555; }
+    footer a { color: #888; margin: 0 8px; }
+
+    /* ── スクロールアニメ ── */
+    .fade-up { opacity: 0; transform: translateY(20px); transition: opacity 0.5s ease, transform 0.5s ease; }
+    .fade-up.visible { opacity: 1; transform: translateY(0); }
+
+    /* ── スティッキーCTA（モバイル） ── */
+    .sticky-cta {
+      position: fixed; bottom: 0; left: 0; right: 0; z-index: 200;
+      background: rgba(255,255,255,0.97); backdrop-filter: blur(12px);
+      padding: 10px 16px calc(10px + env(safe-area-inset-bottom));
+      border-top: 1px solid rgba(201,162,39,0.25);
+      box-shadow: 0 -4px 24px rgba(0,0,0,0.1);
+      transform: translateY(110%); transition: transform 0.3s cubic-bezier(0.4,0,0.2,1);
+    }
+    .sticky-cta.show { transform: translateY(0); }
+    .sticky-cta .cta-btn { font-size: 0.95rem; padding: 14px 24px; }
+
+    /* ── ユーザーの声 ── */
+    .voice-cards { display: flex; flex-direction: column; gap: 16px; margin-top: 28px; }
+    .voice-card {
+      background: var(--white); border-radius: var(--radius);
+      padding: 20px; border: 1px solid rgba(201,162,39,0.2);
+      box-shadow: 0 2px 12px rgba(0,0,0,0.04);
+    }
+    .voice-stars { color: #f59e0b; font-size: 0.9rem; margin-bottom: 10px; letter-spacing: 2px; }
+    .voice-text { font-size: 0.88rem; color: var(--dark); line-height: 1.8; margin-bottom: 12px; }
+    .voice-user { font-size: 0.75rem; color: var(--gray); font-weight: 700; }
   </style>
 </head>
 <body>
   <!-- Google Tag Manager (noscript) -->
   <noscript><iframe src="https://www.googletagmanager.com/ns.html?id=GTM-P6VNBWH3" height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
 
-  <div class="lp-logo">🌸</div>
-  <h1 class="brand lp-catch">アイリプ</h1>
-  <p class="lp-sub">LINE返信をAIが自動生成。<br>100人の関係を落とさず回す<br>キャスト専用の営業AI秘書。</p>
+  <!-- ヘッダー -->
+  <header class="lp-header">
+    <div class="lp-brand">アイリプ</div>
+    <a href="/login" class="lp-header-cta">無料で始める</a>
+  </header>
 
-  <a href="/login" class="lp-btn">無料で始める</a>
-  <p class="lp-login">すでにアカウントをお持ちの方は<a href="/login">ログイン</a></p>
+  <!-- ── HERO ── -->
+  <section class="hero">
+    <div class="hero-inner">
+      <p class="hero-eyebrow">🌸 キャスト専用 AI営業秘書</p>
+      <h1 class="hero-title">
+        LINEの返信は、<br>
+        もう<em>頑張らなくていい</em>。
+      </h1>
+      <p class="hero-sub">
+        売上を最大化する、あなただけのAI秘書。<br>
+        お客様の好み・NG話題・過去の会話をすべて記憶。<br>
+        AIが指名に繋がる返信を3案、瞬時に提案します。
+      </p>
+      <div class="hero-cta-wrap">
+        <a href="/login" class="cta-btn">🌸 無料でAI秘書を雇う</a>
+        <p class="cta-note">顧客3名まで完全無料・登録60秒・クレカ不要</p>
+      </div>
+    </div>
 
-  <!-- LP詳細は後日追加 -->
+    <!-- スマホモック（CSSアニメ） -->
+    <div class="phone-wrap">
+      <div class="phone">
+        <div class="phone-notch"></div>
+        <div class="phone-screen" id="phone-screen">
+
+          <!-- 画面1: カルテ -->
+          <div class="screen active" id="s1">
+            <div class="s-header">
+              <div class="s-dot"></div>
+              <span class="s-title-text">📋 田中さん カルテ</span>
+            </div>
+            <div class="s-card">
+              <div class="s-label">お酒の好み</div>
+              <div class="s-val">シャンパン（ドンペリ白）・ワイン</div>
+            </div>
+            <div class="s-card">
+              <div class="s-label">NG話題</div>
+              <div class="s-val">奥さんの話・仕事の愚痴</div>
+            </div>
+            <div class="s-card">
+              <div class="s-label">最終来店</div>
+              <div class="s-val">2日前 ドンペリ1本 ¥80,000</div>
+            </div>
+            <div class="s-card">
+              <div class="s-label">メモ</div>
+              <div class="s-val">ゴルフ好き、来月誕生日（5/15）</div>
+            </div>
+          </div>
+
+          <!-- 画面2: AI返信生成 -->
+          <div class="screen" id="s2">
+            <div class="s-header">
+              <div class="s-dot"></div>
+              <span class="s-title-text">✨ AI返信を考える</span>
+            </div>
+            <div class="s-tone-row">
+              <div class="s-tone active">💕 Sweet</div>
+              <div class="s-tone">😎 Cool</div>
+              <div class="s-tone">💼 Business</div>
+            </div>
+            <div class="s-card">
+              <div class="s-label">追記（任意）</div>
+              <div class="s-val">ドンペリのお礼を言いたい</div>
+            </div>
+            <div class="s-btn">返信を考える ✨</div>
+          </div>
+
+          <!-- 画面3: 生成中（ストリーミング） -->
+          <div class="screen" id="s3">
+            <div class="s-header">
+              <div class="s-dot" style="animation: blink2 0.8s infinite;"></div>
+              <span class="s-title-text">✍️ AIが生成中...</span>
+            </div>
+            <div class="s-stream-box" style="flex:1">
+              <div class="s-stream-label">案1 生成中...</div>
+              <div class="s-stream-text" id="stream-text"></div>
+            </div>
+            <div class="s-stream-box" style="opacity:0.4">
+              <div class="s-stream-label">案2 待機中...</div>
+            </div>
+          </div>
+
+          <!-- 画面4: 3案完成 -->
+          <div class="screen" id="s4">
+            <div class="s-header">
+              <div class="s-dot" style="background:#4ade80"></div>
+              <span class="s-title-text">✅ 3案できました！</span>
+            </div>
+            <div class="s-suggestion">
+              <div class="s-suggestion-text">昨日のドンペリ美味しかった🥂 田中さんがいるとやっぱり楽しいな💕 来週また会えたら嬉しいな</div>
+              <div class="s-copy-btn">📋 コピー</div>
+            </div>
+            <div class="s-suggestion">
+              <div class="s-suggestion-text">ドンペリのお礼言い忘れてた！田中さんのおかげで昨日最高の夜でした🌸 また来てほしいな〜</div>
+              <div class="s-copy-btn">📋 コピー</div>
+            </div>
+            <div class="s-suggestion">
+              <div class="s-suggestion-text">昨日ありがとうございました😊 田中さんとのお話、いつも楽しみにしています。またお会いできる日を♡</div>
+              <div class="s-copy-btn">📋 コピー</div>
+            </div>
+          </div>
+
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ── 悩み共感 ── -->
+  <section class="section pain-section">
+    <div class="section-inner">
+      <p class="section-label">こんな悩みありませんか？</p>
+      <h2 class="section-title">営業LINEが、<br>苦痛になっていませんか？</h2>
+      <ul class="pain-list">
+        <li class="pain-item">
+          <span class="pain-icon">😔</span>
+          <span class="pain-text">疲れて帰ってきたのに、何十件も返信が溜まっている…</span>
+        </li>
+        <li class="pain-item">
+          <span class="pain-icon">🫤</span>
+          <span class="pain-text">「あのお客さん、何の話が好きだったっけ？」を忘れて既読スルー</span>
+        </li>
+        <li class="pain-item">
+          <span class="pain-icon">😞</span>
+          <span class="pain-text">いつも同じ内容になって、既読無視が怖くなってきた</span>
+        </li>
+        <li class="pain-item">
+          <span class="pain-icon">🥺</span>
+          <span class="pain-text">営業のやり方がわからず、一人で悩んでメンタルが削れる</span>
+        </li>
+      </ul>
+      <div class="pain-answer">
+        <strong>その悩み、アイリプがすべて解決します。</strong>
+        <span>疲れた夜でも、AIが「あなたらしい一言」を考えてくれる。</span>
+      </div>
+    </div>
+  </section>
+
+  <!-- ── Before/After ── -->
+  <section class="section ba-section">
+    <div class="section-inner">
+      <p class="section-label">Before / After</p>
+      <h2 class="section-title">返信がこんなに変わる</h2>
+      <p class="section-body">同じお客様への返信でも、カルテの記憶を活かすとこれだけ違います。</p>
+      <div class="ba-wrap">
+        <div class="ba-card before">
+          <div class="ba-label">BEFORE — 今まで</div>
+          <div class="ba-bubble">昨日はありがとう！また来てね😊</div>
+        </div>
+        <div class="ba-arrow">↓</div>
+        <div class="ba-card after">
+          <div class="ba-label">AFTER — アイリプ使用</div>
+          <div class="ba-bubble">
+            昨日のドンペリ、美味しかったね🥂✨<br>
+            田中さんがゴルフの話してくれた時、すごく楽しそうで嬉しかったな💕<br>
+            来週また会えたら嬉しいな〜🌸
+          </div>
+        </div>
+      </div>
+      <p style="font-size:0.75rem;color:var(--gray);text-align:center;margin-top:12px">
+        ※ カルテに「ゴルフ好き、ドンペリ」と入力するだけで自動生成
+      </p>
+    </div>
+  </section>
+
+  <!-- ── 3つの強み ── -->
+  <section class="section feature-section">
+    <div class="section-inner">
+      <p class="section-label">アイリプの3つの柱</p>
+      <h2 class="section-title">「私より私の顧客を<br>知っているAI」</h2>
+      <div class="feature-cards">
+
+        <div class="feature-card">
+          <div class="feature-num">1</div>
+          <div class="feature-tag">📋 記憶 — カルテ機能</div>
+          <h3 class="feature-title">「何が好きだっけ？」をゼロに</h3>
+          <p class="feature-body">
+            お酒の好み、NG話題、誕生日、前回の来店内容。
+            すべてAIが記憶し、返信に自然に盛り込みます。
+            なげっぱなし入力でAIが各項目に自動振り分け。
+          </p>
+        </div>
+
+        <div class="feature-card">
+          <div class="feature-num">2</div>
+          <div class="feature-tag">✨ 戦略 — 4つの返信トーン</div>
+          <h3 class="feature-title">駆け引きはAIにお任せ</h3>
+          <p class="feature-body">
+            甘えたい時は💕 Sweet、距離を置きたい時は😎 Cool、
+            ビジネスマンには💼 Business、心配なら🤗 Care。
+            状況に合わせた3案をAIが同時提示。選んでコピーするだけ。
+          </p>
+        </div>
+
+        <div class="feature-card">
+          <div class="feature-num">3</div>
+          <div class="feature-tag">🤖 伴走 — AI相談</div>
+          <h3 class="feature-title">孤独な夜の、頼れる相談相手</h3>
+          <p class="feature-body">
+            「このお客さんどう思う？」「最近メンタルきつくて…」<br>
+            誰にも言えない営業の悩みも、AI秘書が24時間
+            親身に寄り添い、具体的なアドバイスをくれます。
+          </p>
+        </div>
+
+      </div>
+    </div>
+  </section>
+
+  <!-- CTA（中間） -->
+  <section style="padding:40px 20px;background:var(--light)">
+    <div style="max-width:480px;margin:0 auto">
+      <a href="/login" class="cta-btn">🌸 今すぐ無料でAI秘書を雇う</a>
+      <p class="cta-note">顧客3名まで完全無料・クレカ不要</p>
+    </div>
+  </section>
+
+  <!-- ── ユーザーの声 ── -->
+  <section class="section" style="background:var(--light)">
+    <div class="section-inner">
+      <p class="section-label">ユーザーの声</p>
+      <h2 class="section-title">「これなしじゃ<br>営業できない」</h2>
+      <div class="voice-cards">
+        <div class="voice-card">
+          <p class="voice-stars">★★★★★</p>
+          <p class="voice-text">「帰ってから返信するのが本当に苦痛だったのに、今は逆に楽しみになりました。カルテに入れてるだけでドンペリのお礼もゴルフの話題も全部入れてくれて感動です」</p>
+          <p class="voice-user">あやか さん / キャバ嬢 3年目</p>
+        </div>
+        <div class="voice-card">
+          <p class="voice-stars">★★★★★</p>
+          <p class="voice-text">「LINEの返信で悩む時間がゼロになりました。Sweet と Cool の使い分けができるから、いい感じに距離感を調整できるし、指名も増えた気がします💕」</p>
+          <p class="voice-user">みお さん / ラウンジ嬢 2年目</p>
+        </div>
+        <div class="voice-card">
+          <p class="voice-stars">★★★★★</p>
+          <p class="voice-text">「AIに愚痴が聞いてもらえるのが地味に一番ありがたい。営業の相談にも親身に乗ってくれるし、24時間使えるのが夜職にはめちゃくちゃ合ってると思います」</p>
+          <p class="voice-user">れいな さん / クラブキャスト 5年目</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ── 3ステップ ── -->
+  <section class="section step-section">
+    <div class="section-inner">
+      <p class="section-label">使い方</p>
+      <h2 class="section-title">たった3ステップ</h2>
+      <div class="steps">
+        <div class="step">
+          <div class="step-num">1</div>
+          <div class="step-content">
+            <h3 class="step-title">カルテに入力</h3>
+            <p class="step-body">お客様の特徴や来店内容を話すorメモする。AIが内容を理解して各項目に自動振り分け。</p>
+          </div>
+        </div>
+        <div class="step">
+          <div class="step-num">2</div>
+          <div class="step-content">
+            <h3 class="step-title">トーンを選んで、一言添えて</h3>
+            <p class="step-body">Sweet / Cool / Business / Care から今の気分を選択。「ドンペリのお礼を言いたい」など一言添えるだけ。</p>
+          </div>
+        </div>
+        <div class="step">
+          <div class="step-num">3</div>
+          <div class="step-content">
+            <h3 class="step-title">選んでLINEへ</h3>
+            <p class="step-body">AIが作った3案から一番しっくりくるものを選んでコピー。そのままLINEに貼るだけで完了。</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ── 料金 ── -->
+  <section class="section price-section">
+    <div class="section-inner">
+      <p class="section-label">料金プラン</p>
+      <h2 class="section-title">まずは無料で、<br>体感してください</h2>
+      <div class="price-cards">
+
+        <div class="price-card featured">
+          <div class="price-badge">🌸 おすすめ！まずはここから</div>
+          <p class="price-plan">FREE</p>
+          <p class="price-amount">¥0 <span>/ 月</span></p>
+          <p class="price-desc">3名のお客様でAIの凄さを体感</p>
+          <ul class="price-features">
+            <li>顧客カルテ管理（3名まで）</li>
+            <li>AI返信生成（全機能）</li>
+            <li>AI相談（1日3回まで）</li>
+            <li>対応履歴・LINEリンク保存</li>
+          </ul>
+          <a href="/login" class="cta-btn" style="margin-top:20px">無料で始める</a>
+        </div>
+
+        <div class="price-card">
+          <p class="price-plan">PRO</p>
+          <p class="price-amount">準備中</p>
+          <p class="price-desc">先行登録者には特別価格でご案内予定</p>
+          <ul class="price-features">
+            <li>顧客管理 無制限</li>
+            <li>AI返信生成 無制限</li>
+            <li>AI相談 無制限</li>
+            <li class="muted">Coming Soon...</li>
+          </ul>
+        </div>
+
+      </div>
+    </div>
+  </section>
+
+  <!-- ── FAQ ── -->
+  <section class="section faq-section">
+    <div class="section-inner">
+      <p class="section-label">よくある質問</p>
+      <h2 class="section-title">FAQ</h2>
+      <div class="faq-list">
+        <div class="faq-item">
+          <p class="faq-q">本当に無料？</p>
+          <p class="faq-a">はい。顧客3名まで完全無料で全機能を使えます。クレジットカードの登録も不要です。</p>
+        </div>
+        <div class="faq-item">
+          <p class="faq-q">お客様の情報はどこに保存されますか？</p>
+          <p class="faq-a">Cloudflare（世界最高水準のセキュリティ）の暗号化された環境に保存されます。第三者が閲覧することは一切ありません。</p>
+        </div>
+        <div class="faq-item">
+          <p class="faq-q">アプリのダウンロードは必要ですか？</p>
+          <p class="faq-a">不要です。スマホのブラウザからそのまま使えます（Safari・Chrome対応）。</p>
+        </div>
+        <div class="faq-item">
+          <p class="faq-q">LINEと連携しますか？</p>
+          <p class="faq-a">直接連携はしていません。AIが作った返信文をコピーして、LINEに貼り付けるだけです。お店の規定に関わらず安心して使えます。</p>
+        </div>
+        <div class="faq-item">
+          <p class="faq-q">AIの返信は自然な日本語ですか？</p>
+          <p class="faq-a">はい。最新AIが自然な話し言葉で生成します。キャラ設定（語尾・口癖）も設定でカスタマイズできます。</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ── 最終CTA ── -->
+  <section class="final-cta">
+    <div class="final-cta-inner">
+      <h2>今夜の営業LINEから、<br>もう一人じゃない。</h2>
+      <p>登録60秒、顧客3名まで完全無料。<br>まずはAI秘書に頼んでみてください。</p>
+      <a href="/login" class="cta-btn" style="background:linear-gradient(135deg,#e8c85a,#c9a227);color:#1a1108">
+        🌸 無料でAI秘書を雇う
+      </a>
+      <p style="font-size:0.72rem;color:rgba(255,255,255,0.4);margin-top:12px">クレジットカード不要・いつでも退会可能</p>
+    </div>
+  </section>
+
+  <!-- スティッキーCTA（モバイル） -->
+  <div class="sticky-cta" id="sticky-cta">
+    <a href="/login" class="cta-btn" data-cta="sticky">🌸 無料でAI秘書を雇う</a>
+  </div>
+
+  <!-- フッター -->
+  <footer>
+    <p>
+      <a href="/login">ログイン</a>
+      <a href="/notice">お知らせ・ご要望</a>
+      <a href="/privacy">プライバシーポリシー</a>
+    </p>
+    <p style="margin-top:8px">© 2026 アイリプ</p>
+  </footer>
+
+  <script>
+    // スマホモックアニメーション
+    const screens = ['s1','s2','s3','s4'];
+    let cur = 0;
+    const durations = [3000, 2500, 3500, 4000];
+
+    function nextScreen() {
+      document.getElementById(screens[cur]).classList.remove('active');
+      cur = (cur + 1) % screens.length;
+      document.getElementById(screens[cur]).classList.add('active');
+      if (cur === 2) startStreaming();
+      setTimeout(nextScreen, durations[cur]);
+    }
+
+    // ストリーミングアニメ
+    const streamText = document.getElementById('stream-text');
+    const streamMsg = '昨日のドンペリ、美味しかったね🥂 田中さんがいるとやっぱり楽しいな💕 来週また…';
+    function startStreaming() {
+      streamText.textContent = '';
+      let i = 0;
+      const interval = setInterval(() => {
+        if (i < streamMsg.length) {
+          streamText.textContent += streamMsg[i++];
+        } else {
+          clearInterval(interval);
+        }
+      }, 45);
+    }
+
+    setTimeout(nextScreen, durations[0]);
+
+    // スクロールアニメ（IntersectionObserver）
+    const animEls = document.querySelectorAll(
+      '.feature-card, .pain-item, .step, .faq-item, .price-card, .ba-card, .section-title, .pain-answer, .voice-card'
+    );
+    animEls.forEach(el => el.classList.add('fade-up'));
+    const io = new IntersectionObserver((entries) => {
+      entries.forEach(e => {
+        if (e.isIntersecting) { e.target.classList.add('visible'); io.unobserve(e.target); }
+      });
+    }, { threshold: 0.1, rootMargin: '0px 0px -30px 0px' });
+    animEls.forEach(el => io.observe(el));
+
+    // スティッキーCTA 表示制御
+    const stickyCta = document.getElementById('sticky-cta');
+    const heroCta = document.querySelector('.hero-cta-wrap');
+    const finalCtaEl = document.querySelector('.final-cta');
+    function updateSticky() {
+      const heroBottom = heroCta.getBoundingClientRect().bottom;
+      const finalTop = finalCtaEl.getBoundingClientRect().top;
+      stickyCta.classList.toggle('show', heroBottom < 0 && finalTop > window.innerHeight);
+    }
+    window.addEventListener('scroll', updateSticky, { passive: true });
+
+    // GA4 CTAクリック（GTM dataLayer経由）
+    document.querySelectorAll('.cta-btn, .lp-header-cta').forEach(btn => {
+      btn.addEventListener('click', function() {
+        window.dataLayer = window.dataLayer || [];
+        dataLayer.push({ event: 'cta_click', button_label: this.textContent.trim(), page_section: this.closest('section')?.className || 'header' });
+      });
+    });
+  </script>
 </body>
 </html>
