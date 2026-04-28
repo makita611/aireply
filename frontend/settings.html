@@ -89,6 +89,68 @@
         <li>いつでも全データを削除できます</li>
       </ul>
     </div>
+
+    <!-- アカウント情報 -->
+    <div class="card mt-24" style="border-color:rgba(212,175,55,0.2)">
+      <div class="section-label">アカウント情報</div>
+
+      <!-- メールアドレス表示 -->
+      <div class="form-group" style="margin-bottom:8px">
+        <label>メールアドレス</label>
+        <div style="display:flex;align-items:center;gap:8px">
+          <input type="text" id="current-email" readonly
+            style="flex:1;background:var(--bg-input);opacity:0.7;cursor:default">
+          <button class="btn btn-secondary" id="email-toggle-btn"
+            style="white-space:nowrap;padding:10px 14px;font-size:0.8rem">変更</button>
+        </div>
+      </div>
+
+      <!-- メール変更フォーム（折りたたみ） -->
+      <div id="email-form" style="display:none;margin-bottom:16px;padding:14px;background:var(--bg-input);border-radius:10px">
+        <div class="form-group" style="margin-bottom:10px">
+          <label>新しいメールアドレス</label>
+          <input type="email" id="new-email" placeholder="new@example.com">
+        </div>
+        <div class="form-group" style="margin-bottom:10px">
+          <label>現在のパスワード（確認）</label>
+          <input type="password" id="email-confirm-password" placeholder="パスワードを入力">
+        </div>
+        <div style="display:flex;gap:8px">
+          <button class="btn btn-primary" id="email-save-btn" style="flex:1;font-size:0.9rem">変更を保存</button>
+          <button class="btn btn-secondary" id="email-cancel-btn" style="padding:10px 14px;font-size:0.9rem">キャンセル</button>
+        </div>
+      </div>
+
+      <!-- パスワード変更ボタン -->
+      <div style="margin-bottom:8px">
+        <button class="btn btn-secondary" id="pw-toggle-btn"
+          style="width:100%;font-size:0.85rem">🔑 パスワードを変更する</button>
+      </div>
+
+      <!-- パスワード変更フォーム（折りたたみ） -->
+      <div id="pw-form" style="display:none;padding:14px;background:var(--bg-input);border-radius:10px">
+        <div class="form-group" style="margin-bottom:10px">
+          <label>現在のパスワード</label>
+          <input type="password" id="current-password" placeholder="現在のパスワード">
+        </div>
+        <div class="form-group" style="margin-bottom:10px">
+          <label>新しいパスワード（8文字以上）</label>
+          <input type="password" id="new-password" placeholder="新しいパスワード">
+        </div>
+        <div class="form-group" style="margin-bottom:10px">
+          <label>新しいパスワード（確認）</label>
+          <input type="password" id="new-password-confirm" placeholder="もう一度入力">
+        </div>
+        <div style="display:flex;gap:8px">
+          <button class="btn btn-primary" id="pw-save-btn" style="flex:1;font-size:0.9rem">パスワードを変更</button>
+          <button class="btn btn-secondary" id="pw-cancel-btn" style="padding:10px 14px;font-size:0.9rem">キャンセル</button>
+        </div>
+      </div>
+
+      <div id="account-error" class="error-msg hidden" style="margin-top:8px"></div>
+      <div id="account-success" class="hidden"
+        style="margin-top:8px;background:rgba(129,199,132,0.15);border:1px solid rgba(129,199,132,0.4);border-radius:8px;color:#81c784;padding:10px 14px;font-size:0.85rem;"></div>
+    </div>
   </div>
 
   <script type="module" src="/js/settings.js?v=20260428"></script>

@@ -138,7 +138,7 @@ export async function handleGetSettings(
   env: Env
 ): Promise<Response> {
   const cast = await env.DB.prepare(
-    'SELECT stage_name, character_prompt, sample_lines, shop_name, age, cast_hobbies, chat_avatar FROM casts WHERE id = ?'
+    'SELECT email, stage_name, character_prompt, sample_lines, shop_name, age, cast_hobbies, chat_avatar FROM casts WHERE id = ?'
   )
     .bind(castId)
     .first();
@@ -182,6 +182,77 @@ export async function handleUpdateSettings(
       castId
     )
     .run();
+
+  return json({ ok: true });
+}
+
+// ── PUT /api/auth/email ───────────────────────────────
+export async function handleChangeEmail(
+  request: Request,
+  castId: string,
+  env: Env
+): Promise<Response> {
+  const { email, password } = (await request.json()) as {
+    email?: string;
+    password?: string;
+  };
+
+  if (!email || !password) {
+    return json({ error: 'メールアドレスとパスワードは必須です' }, 400);
+  }
+
+  const cast = await env.DB.prepare(
+    'SELECT password_hash FROM casts WHERE id = ?'
+  ).bind(castId).first<{ password_hash: string }>();
+
+  if (!cast || !(await verifyPassword(password, cast.password_hash))) {
+    return json({ error: '現在のパスワードが違います' }, 401);
+  }
+
+  const existing = await env.DB.prepare(
+    'SELECT id FROM casts WHERE email = ? AND id != ?'
+  ).bind(email, castId).first();
+  if (existing) {
+    return json({ error: 'このメールアドレスはすでに使用されています' }, 409);
+  }
+
+  await env.DB.prepare(
+    "UPDATE casts SET email = ?, updated_at = datetime('now') WHERE id = ?"
+  ).bind(email, castId).run();
+
+  return json({ ok: true });
+}
+
+// ── PUT /api/auth/password ────────────────────────────
+export async function handleChangePassword(
+  request: Request,
+  castId: string,
+  env: Env
+): Promise<Response> {
+  const { current_password, new_password } = (await request.json()) as {
+    current_password?: string;
+    new_password?: string;
+  };
+
+  if (!current_password || !new_password) {
+    return json({ error: '現在・新しいパスワードは必須です' }, 400);
+  }
+  if (new_password.length < 8) {
+    return json({ error: 'パスワードは8文字以上にしてください' }, 400);
+  }
+
+  const cast = await env.DB.prepare(
+    'SELECT password_hash FROM casts WHERE id = ?'
+  ).bind(castId).first<{ password_hash: string }>();
+
+  if (!cast || !(await verifyPassword(current_password, cast.password_hash))) {
+    return json({ error: '現在のパスワードが違います' }, 401);
+  }
+
+  const newHash = await hashPassword(new_password);
+  await env.DB.prepare(
+    "UPDATE casts SET password_hash = ?, updated_at = datetime('now') WHERE id = ?"
+  ).bind(newHash, castId).run();
 
   return json({ ok: true });
 }

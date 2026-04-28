@@ -3,6 +3,8 @@ import {
   handleLogin,
   handleGetSettings,
   handleUpdateSettings,
+  handleChangeEmail,
+  handleChangePassword,
   verifyJwt,
 } from './auth';
 import {
@@ -30,6 +32,7 @@ export interface Env {
 
 // ── CORS許可オリジン ──────────────────────────────────
 const ALLOWED_ORIGINS = [
+  'https://ai-rp.link',
   'https://aireply-eqc.pages.dev',
   'http://localhost:8788',
   'http://localhost:5500',
@@ -104,6 +107,14 @@ export default {
       if (path === '/api/cast/settings') {
         if (method === 'GET') return addCors(await handleGetSettings(castId, env), origin);
         if (method === 'PUT') return addCors(await handleUpdateSettings(request, castId, env), origin);
+      }
+
+      // アカウント（メール・パスワード変更）
+      if (path === '/api/auth/email' && method === 'PUT') {
+        return addCors(await handleChangeEmail(request, castId, env), origin);
+      }
+      if (path === '/api/auth/password' && method === 'PUT') {
+        return addCors(await handleChangePassword(request, castId, env), origin);
       }
 
       // 顧客一覧 / 新規作成

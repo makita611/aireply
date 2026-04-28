@@ -47,6 +47,7 @@ async function loadSettings() {
     castHobbiesEl.value = data.cast_hobbies ?? '';
     characterEl.value   = data.character_prompt ?? '';
     if (data.chat_avatar) { selectedAvatar = data.chat_avatar; updateAvatarGrid(); }
+    if (data.email) { document.getElementById('current-email').value = data.email; }
 
     if (data.sample_lines) {
       try {
@@ -97,5 +98,89 @@ function showError(msg) {
   errorEl.textContent = msg;
   errorEl.classList.remove('hidden');
 }
+
+// ── アカウント管理 ──────────────────────────────────
+const accountError   = document.getElementById('account-error');
+const accountSuccess = document.getElementById('account-success');
+
+function showAccountError(msg) {
+  accountError.textContent = msg;
+  accountError.classList.remove('hidden');
+  accountSuccess.classList.add('hidden');
+}
+function showAccountSuccess(msg) {
+  accountSuccess.textContent = msg;
+  accountSuccess.classList.remove('hidden');
+  accountError.classList.add('hidden');
+  setTimeout(() => accountSuccess.classList.add('hidden'), 3000);
+}
+
+// メール変更トグル
+document.getElementById('email-toggle-btn').addEventListener('click', () => {
+  const form = document.getElementById('email-form');
+  form.style.display = form.style.display === 'none' ? 'block' : 'none';
+});
+document.getElementById('email-cancel-btn').addEventListener('click', () => {
+  document.getElementById('email-form').style.display = 'none';
+  document.getElementById('new-email').value = '';
+  document.getElementById('email-confirm-password').value = '';
+});
+
+document.getElementById('email-save-btn').addEventListener('click', async () => {
+  const email    = document.getElementById('new-email').value.trim();
+  const password = document.getElementById('email-confirm-password').value;
+  if (!email || !password) { showAccountError('メールアドレスとパスワードを入力してください'); return; }
+
+  const btn = document.getElementById('email-save-btn');
+  btn.disabled = true; btn.textContent = '変更中...';
+  try {
+    await api('/api/auth/email', { method: 'PUT', body: JSON.stringify({ email, password }) });
+    document.getElementById('current-email').value = email;
+    document.getElementById('email-form').style.display = 'none';
+    document.getElementById('new-email').value = '';
+    document.getElementById('email-confirm-password').value = '';
+    showAccountSuccess('メールアドレスを変更しました ✓');
+  } catch (err) {
+    showAccountError(err.message);
+  } finally {
+    btn.disabled = false; btn.textContent = '変更を保存';
+  }
+});
+
+// パスワード変更トグル
+document.getElementById('pw-toggle-btn').addEventListener('click', () => {
+  const form = document.getElementById('pw-form');
+  form.style.display = form.style.display === 'none' ? 'block' : 'none';
+});
+document.getElementById('pw-cancel-btn').addEventListener('click', () => {
+  document.getElementById('pw-form').style.display = 'none';
+  ['current-password', 'new-password', 'new-password-confirm'].forEach(id => {
+    document.getElementById(id).value = '';
+  });
+});
+
+document.getElementById('pw-save-btn').addEventListener('click', async () => {
+  const current = document.getElementById('current-password').value;
+  const next    = document.getElementById('new-password').value;
+  const confirm = document.getElementById('new-password-confirm').value;
+  if (!current || !next) { showAccountError('パスワードを入力してください'); return; }
+  if (next !== confirm)  { showAccountError('新しいパスワードが一致しません'); return; }
+  if (next.length < 8)   { showAccountError('パスワードは8文字以上にしてください'); return; }
+
+  const btn = document.getElementById('pw-save-btn');
+  btn.disabled = true; btn.textContent = '変更中...';
+  try {
+    await api('/api/auth/password', { method: 'PUT', body: JSON.stringify({ current_password: current, new_password: next }) });
+    document.getElementById('pw-form').style.display = 'none';
+    ['current-password', 'new-password', 'new-password-confirm'].forEach(id => {
+      document.getElementById(id).value = '';
+    });
+    showAccountSuccess('パスワードを変更しました ✓');
+  } catch (err) {
+    showAccountError(err.message);
+  } finally {
+    btn.disabled = false; btn.textContent = 'パスワードを変更';
+  }
+});
 
 loadSettings();
