@@ -249,6 +249,35 @@
     .price-features li.muted { color: var(--gray); }
     .price-features li.muted::before { content: '–'; color: #ccc; }
 
+    /* ── デモ動画 ── */
+    .video-section { background: var(--dark); }
+    .video-section .section-label { color: var(--gold); }
+    .video-section .section-title { color: var(--white); }
+    .video-section .section-body { color: rgba(255,255,255,0.6); }
+    .video-wrap {
+      position: relative; border-radius: var(--radius); overflow: hidden;
+      cursor: pointer;
+      box-shadow: 0 8px 32px rgba(0,0,0,0.5);
+    }
+    .video-wrap video {
+      display: block; width: 100%; border-radius: var(--radius);
+    }
+    .video-tap-hint {
+      position: absolute; bottom: 12px; right: 12px;
+      background: rgba(0,0,0,0.55); color: white;
+      font-size: 0.72rem; padding: 4px 10px; border-radius: 50px;
+      pointer-events: none; transition: opacity 0.3s;
+    }
+    /* 全画面オーバーレイ */
+    .video-fullscreen-overlay {
+      display: none; position: fixed; inset: 0; z-index: 9999;
+      background: #000; align-items: center; justify-content: center;
+    }
+    .video-fullscreen-overlay.active { display: flex; }
+    .video-fullscreen-overlay video {
+      width: 100%; height: 100%; object-fit: contain;
+    }
+
     /* ── FAQ ── */
     .faq-section { background: var(--light); }
     .faq-list { display: flex; flex-direction: column; gap: 12px; margin-top: 28px; }
@@ -410,6 +439,27 @@
           </div>
 
         </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ── デモ動画 ── -->
+  <section class="section video-section">
+    <div class="section-inner">
+      <p class="section-label">実際の使い方</p>
+      <h2 class="section-title">30秒でわかる<br>アイリプの全部</h2>
+      <p class="section-body" style="margin-bottom:20px">タップすると全画面で再生できます。</p>
+      <div class="video-wrap" id="video-wrap">
+        <video
+          id="demo-video"
+          src="video/airpv1.mp4"
+          playsinline
+          autoplay
+          muted
+          loop
+          preload="metadata"
+        ></video>
+        <div class="video-tap-hint" id="video-tap-hint">タップして全画面</div>
       </div>
     </div>
   </section>
@@ -726,6 +776,33 @@
       stickyCta.classList.toggle('show', heroBottom < 0 && finalTop > window.innerHeight);
     }
     window.addEventListener('scroll', updateSticky, { passive: true });
+
+    // 動画タップ → 全画面オーバーレイ
+    const videoWrap = document.getElementById('video-wrap');
+    const tapHint = document.getElementById('video-tap-hint');
+    if (videoWrap) {
+      const overlay = document.createElement('div');
+      overlay.className = 'video-fullscreen-overlay';
+      const ovVideo = document.createElement('video');
+      ovVideo.src = 'video/airpv1.mp4';
+      ovVideo.setAttribute('playsinline', '');
+      ovVideo.setAttribute('controls', '');
+      ovVideo.autoplay = true;
+      overlay.appendChild(ovVideo);
+      document.body.appendChild(overlay);
+
+      videoWrap.addEventListener('click', () => {
+        overlay.classList.add('active');
+        ovVideo.currentTime = document.getElementById('demo-video').currentTime;
+        ovVideo.play();
+        tapHint.style.opacity = '0';
+      });
+      overlay.addEventListener('click', () => {
+        overlay.classList.remove('active');
+        ovVideo.pause();
+        tapHint.style.opacity = '1';
+      });
+    }
 
     // GA4 CTAクリック（GTM dataLayer経由）
     document.querySelectorAll('.cta-btn, .lp-header-cta').forEach(btn => {
