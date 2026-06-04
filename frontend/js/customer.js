@@ -339,6 +339,10 @@ async function runGenerate(refineText = null) {
   generateBtn.disabled = true;
   generateBtn.textContent = '考え中... ✨';
 
+  // GA4: AI生成開始
+  window.dataLayer = window.dataLayer || [];
+  dataLayer.push({ event: 'ai_generate', tone: selectedTone });
+
   const contextEl = document.getElementById('ai-context');
   let context = contextEl.value.trim() || null;
   if (refineText) {
@@ -554,6 +558,9 @@ function finalizeSlots(slots, suggestions) {
       copyBtn.textContent = '✓ コピー済み';
       copyBtn.style.background = 'rgba(129,199,132,0.3)';
       setTimeout(() => { copyBtn.textContent = '📋 コピー'; copyBtn.style.background = ''; }, 3000);
+      // GA4: コピー完了
+      window.dataLayer = window.dataLayer || [];
+      dataLayer.push({ event: 'ai_copy', tone: selectedTone, suggestion_index: idx });
       clearSuggestionsCache(); // コピーしたらキャッシュクリア（次回は履歴のみ）
       if (currentLogId) {
         api(`/api/ai/logs/${currentLogId}`, {

@@ -36,6 +36,14 @@ form.addEventListener('submit', async (e) => {
 
     localStorage.setItem('castline_token',   data.token);
     localStorage.setItem('castline_cast_id', data.castId);
+
+    // GA4イベント送信
+    window.dataLayer = window.dataLayer || [];
+    dataLayer.push({
+      event: mode === 'login' ? 'login' : 'sign_up',
+      method: 'email'
+    });
+
     location.href = '/dashboard';
   } catch (err) {
     errorMsg.textContent = err.message;
