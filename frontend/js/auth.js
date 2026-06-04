@@ -37,14 +37,16 @@ form.addEventListener('submit', async (e) => {
     localStorage.setItem('castline_token',   data.token);
     localStorage.setItem('castline_cast_id', data.castId);
 
-    // GA4イベント送信
+    // GA4イベント送信（GTMが処理する時間を100ms確保してから遷移）
     window.dataLayer = window.dataLayer || [];
     dataLayer.push({
       event: mode === 'login' ? 'login' : 'sign_up',
-      method: 'email'
+      method: 'email',
+      eventCallback: () => { location.href = '/dashboard'; },
+      eventTimeout: 500
     });
-
-    location.href = '/dashboard';
+    // フォールバック：GTMのコールバックが動かない環境でも必ず遷移
+    setTimeout(() => { location.href = '/dashboard'; }, 500);
   } catch (err) {
     errorMsg.textContent = err.message;
     errorMsg.classList.remove('hidden');

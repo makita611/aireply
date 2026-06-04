@@ -787,6 +787,7 @@
       ovVideo.src = 'video/airpv1.mp4';
       ovVideo.setAttribute('playsinline', '');
       ovVideo.setAttribute('controls', '');
+      ovVideo.muted = true;   // デフォルト音なし（ユーザーがコントロールバーで音量ON可能）
       ovVideo.autoplay = true;
       overlay.appendChild(ovVideo);
       document.body.appendChild(overlay);
