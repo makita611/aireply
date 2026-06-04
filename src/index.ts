@@ -15,7 +15,7 @@ import {
   handleDeleteCustomer,
 } from './customers';
 import { handleListLogs, handleCreateLog, handleUpdateLog, handleDeleteLog } from './logs';
-import { handleGenerate, handleGenerateStream, handleAnalyze, handleSelectReply, handleGetAiLogs, handleSaveGeneratedLog } from './ai';
+import { handleGenerate, handleGenerateStream, handleAnalyze, handleSelectReply, handleGetAiLogs, handleSaveGeneratedLog, handleDemo } from './ai';
 import { handleChat, handleDashboardContext, handleAddMemory, handleGetMemories, handleDeleteMemory } from './chat';
 
 // ── 環境変数の型定義 ──────────────────────────────────
@@ -95,6 +95,10 @@ export default {
       }
       if (path === '/api/auth/login' && method === 'POST') {
         return addCors(await handleLogin(request, env), origin);
+      }
+      // ゲストデモ（認証不要・IP制限10回/日）
+      if (path === '/api/ai/demo' && method === 'POST') {
+        return await handleDemo(request, env);
       }
 
       // ── JWT認証が必要なエンドポイント ─────────────────

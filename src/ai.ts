@@ -317,6 +317,75 @@ export async function handleAnalyze(
   }
 }
 
+// ── POST /api/ai/demo （認証不要・IP制限10回/日） ────────
+export async function handleDemo(
+  request: Request,
+  env: Env
+): Promise<Response> {
+  const origin = request.headers.get('Origin');
+  const corsH: Record<string, string> = {
+    'Access-Control-Allow-Origin': origin ?? '*',
+    'Access-Control-Allow-Methods': 'POST, OPTIONS',
+    'Access-Control-Allow-Headers': 'Content-Type',
+  };
+  const j = (data: unknown, status = 200) =>
+    new Response(JSON.stringify(data), {
+      status,
+      headers: { 'Content-Type': 'application/json', ...corsH },
+    });
+
+  const { tone, additional_context } = (await request.json()) as {
+    tone?: string;
+    additional_context?: string;
+  };
+
+  if (!tone || !['Sweet', 'Cool', 'Business', 'Care'].includes(tone)) {
+    return j({ error: 'tone は Sweet/Cool/Business/Care のいずれかを指定してください' }, 400);
+  }
+  if (!additional_context?.trim()) {
+    return j({ error: 'どんな返信か入力してください' }, 400);
+  }
+
+  // IPベースのレート制限（1日10回）
+  const ip = request.headers.get('CF-Connecting-IP') ?? 'unknown';
+  const today = new Date().toISOString().slice(0, 10); // YYYY-MM-DD
+  const kvKey = `demo:${ip}:${today}`;
+  const countStr = await env.CASTLINE_KV.get(kvKey);
+  const count = parseInt(countStr ?? '0', 10);
+  const DAILY_LIMIT = 10;
+
+  if (count >= DAILY_LIMIT) {
+    return j({ error: 'limit_reached', message: '本日の無料体験回数（10回）を使い切りました。登録すると毎日使えます！' }, 429);
+  }
+
+  // カウントアップ（TTL: 25時間）
+  await env.CASTLINE_KV.put(kvKey, String(count + 1), { expirationTtl: 90000 });
+
+  // Dify呼び出し（カルテなし・トーンのみ）
+  let suggestions: string[];
+  try {
+    suggestions = await callDify(
+      {
+        cast_character: '',
+        customer_profile: '',
+        recent_logs: '',
+        tone,
+        additional_context: additional_context.trim(),
+      },
+      `demo:${ip}`,
+      env
+    );
+  } catch (err) {
+    const message = err instanceof Error ? err.message : 'AI生成に失敗しました';
+    return j({ error: message }, 502);
+  }
+
+  return j({
+    suggestions,
+    remaining: DAILY_LIMIT - count - 1,
+  });
+}
+
 // ── Dify Workflow API呼び出し ─────────────────────────
 // Chatflow（/chat-messages）ではなくWorkflow（/workflows/run）を使う
 // Workflowはユーザーメッセージ不要で変数をそのまま渡せる

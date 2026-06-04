@@ -75,24 +75,101 @@
     .cta-btn:active { transform: scale(0.97); box-shadow: 0 2px 12px rgba(201,162,39,0.2); }
     .cta-note { font-size: 0.72rem; color: var(--gray); text-align: center; margin-top: 8px; }
 
-    /* ── HERO ── */
+    /* ── HERO（チャットUI first） ── */
     .hero {
-      padding-top: 88px;
-      background: linear-gradient(160deg, #fffdf7 0%, #fdf3d8 60%, #fce8b0 100%);
+      padding-top: 72px;
+      background: linear-gradient(160deg, #0d0d1a 0%, #1a1108 100%);
       min-height: 100svh; display: flex; flex-direction: column;
     }
-    .hero-inner { max-width: 480px; margin: 0 auto; padding: 40px 20px 0; flex: 1; display: flex; flex-direction: column; }
+    .hero-inner { max-width: 480px; margin: 0 auto; padding: 28px 16px 0; flex: 1; display: flex; flex-direction: column; }
     .hero-eyebrow {
       font-size: 0.72rem; font-weight: 700; letter-spacing: 0.14em;
-      color: var(--gold); text-transform: uppercase; margin-bottom: 16px;
+      color: var(--gold); text-transform: uppercase; margin-bottom: 10px;
     }
     .hero-title {
-      font-size: 1.85rem; font-weight: 900; line-height: 1.35;
-      color: var(--dark); margin-bottom: 16px;
+      font-size: 1.55rem; font-weight: 900; line-height: 1.35;
+      color: var(--white); margin-bottom: 6px;
     }
-    .hero-title em { color: var(--gold-d); font-style: normal; }
-    .hero-sub { font-size: 0.9rem; color: var(--gray); margin-bottom: 32px; line-height: 1.8; }
-    .hero-cta-wrap { margin-bottom: 40px; }
+    .hero-title em { color: var(--gold-l); font-style: normal; }
+    .hero-sub { font-size: 0.82rem; color: rgba(255,255,255,0.55); margin-bottom: 20px; line-height: 1.7; }
+    .hero-cta-wrap { display: none; } /* デモ体験後の登録CTAで代替 */
+
+    /* ── デモチャットUI ── */
+    .demo-box {
+      background: rgba(255,255,255,0.05);
+      border: 1px solid rgba(201,162,39,0.3);
+      border-radius: 20px;
+      padding: 18px 16px;
+      flex: 1;
+      display: flex; flex-direction: column; gap: 14px;
+      margin-bottom: 24px;
+    }
+    .demo-tone-label { font-size: 0.7rem; color: rgba(255,255,255,0.5); font-weight: 700; letter-spacing: 0.08em; }
+    .demo-tones { display: flex; gap: 8px; flex-wrap: wrap; }
+    .demo-tone-btn {
+      flex: 1; min-width: 70px;
+      padding: 8px 4px; border-radius: 50px;
+      border: 1.5px solid rgba(255,255,255,0.15);
+      background: transparent; color: rgba(255,255,255,0.6);
+      font-size: 0.78rem; font-weight: 700; cursor: pointer;
+      transition: all 0.15s;
+    }
+    .demo-tone-btn.selected {
+      border-color: var(--gold);
+      background: rgba(201,162,39,0.18);
+      color: var(--gold-l);
+    }
+    .demo-input-wrap { display: flex; flex-direction: column; gap: 8px; }
+    .demo-textarea {
+      width: 100%; min-height: 72px; resize: none;
+      background: rgba(255,255,255,0.07);
+      border: 1px solid rgba(255,255,255,0.15);
+      border-radius: 12px; padding: 12px;
+      color: white; font-size: 0.88rem; font-family: inherit;
+      line-height: 1.6;
+    }
+    .demo-textarea::placeholder { color: rgba(255,255,255,0.3); }
+    .demo-textarea:focus { outline: none; border-color: var(--gold); }
+    .demo-submit {
+      width: 100%; padding: 14px;
+      background: linear-gradient(135deg, var(--gold-l), var(--gold-d));
+      border: none; border-radius: 50px;
+      color: #1a1108; font-size: 0.95rem; font-weight: 900;
+      cursor: pointer; transition: opacity 0.15s;
+    }
+    .demo-submit:disabled { opacity: 0.45; cursor: not-allowed; }
+    .demo-counter {
+      text-align: center; font-size: 0.7rem;
+      color: rgba(255,255,255,0.35);
+    }
+    .demo-counter span { color: var(--gold); font-weight: 700; }
+    /* 結果カード */
+    .demo-results { display: flex; flex-direction: column; gap: 10px; }
+    .demo-result-card {
+      background: rgba(255,255,255,0.07);
+      border: 1px solid rgba(201,162,39,0.2);
+      border-radius: 14px; padding: 14px;
+    }
+    .demo-result-text { font-size: 0.88rem; color: #e8e8e8; line-height: 1.7; margin-bottom: 10px; }
+    .demo-copy-btn {
+      display: inline-flex; align-items: center; gap: 4px;
+      background: rgba(201,162,39,0.2); border: none; border-radius: 50px;
+      color: var(--gold-l); font-size: 0.72rem; font-weight: 700;
+      padding: 6px 14px; cursor: pointer; transition: background 0.15s;
+    }
+    .demo-copy-btn:active { background: rgba(201,162,39,0.4); }
+    /* 上限到達 */
+    .demo-limit-msg {
+      text-align: center; padding: 20px 0;
+    }
+    .demo-limit-msg p { font-size: 0.85rem; color: rgba(255,255,255,0.6); margin-bottom: 16px; }
+    /* ローディング */
+    .demo-loading {
+      text-align: center; padding: 20px;
+      font-size: 0.85rem; color: rgba(255,255,255,0.5);
+    }
+    @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.4} }
+    .demo-loading { animation: pulse 1.2s ease-in-out infinite; }
 
     /* ── スマホモック ── */
     .phone-wrap { display: flex; justify-content: center; padding-bottom: 40px; }
@@ -336,111 +413,49 @@
     <a href="/login" class="lp-header-cta">無料で始める</a>
   </header>
 
-  <!-- ── HERO ── -->
+  <!-- ── HERO（チャットUI first） ── -->
   <section class="hero">
     <div class="hero-inner">
       <p class="hero-eyebrow">🌸 キャスト専用 AI営業秘書</p>
       <h1 class="hero-title">
-        LINEの返信は、<br>
-        もう<em>頑張らなくていい</em>。
+        LINEの返信、<br><em>AIに任せてみて。</em>
       </h1>
-      <p class="hero-sub">
-        売上を最大化する、あなただけのAI秘書。<br>
-        お客様の好み・NG話題・過去の会話をすべて記憶。<br>
-        AIが指名に繋がる返信を3案、瞬時に提案します。
-      </p>
-      <div class="hero-cta-wrap">
-        <a href="/login" class="cta-btn">🌸 無料でAI秘書を雇う</a>
-        <p class="cta-note">顧客3名まで完全無料・登録60秒・クレカ不要</p>
-      </div>
-    </div>
+      <p class="hero-sub">まずはログインなしで試せます。トーンを選んで一言入れるだけ。</p>
 
-    <!-- スマホモック（CSSアニメ） -->
-    <div class="phone-wrap">
-      <div class="phone">
-        <div class="phone-notch"></div>
-        <div class="phone-screen" id="phone-screen">
+      <!-- ── デモチャットボックス ── -->
+      <div class="demo-box" id="demo-box">
 
-          <!-- 画面1: カルテ -->
-          <div class="screen active" id="s1">
-            <div class="s-header">
-              <div class="s-dot"></div>
-              <span class="s-title-text">📋 田中さん カルテ</span>
-            </div>
-            <div class="s-card">
-              <div class="s-label">お酒の好み</div>
-              <div class="s-val">シャンパン（ドンペリ白）・ワイン</div>
-            </div>
-            <div class="s-card">
-              <div class="s-label">NG話題</div>
-              <div class="s-val">奥さんの話・仕事の愚痴</div>
-            </div>
-            <div class="s-card">
-              <div class="s-label">最終来店</div>
-              <div class="s-val">2日前 ドンペリ1本 ¥80,000</div>
-            </div>
-            <div class="s-card">
-              <div class="s-label">メモ</div>
-              <div class="s-val">ゴルフ好き、来月誕生日（5/15）</div>
-            </div>
+        <!-- トーン選択 -->
+        <div>
+          <p class="demo-tone-label">どんな雰囲気で返信する？</p>
+          <div class="demo-tones">
+            <button class="demo-tone-btn" data-tone="Sweet">💕 Sweet</button>
+            <button class="demo-tone-btn" data-tone="Cool">😎 Cool</button>
+            <button class="demo-tone-btn" data-tone="Business">💼 Business</button>
+            <button class="demo-tone-btn" data-tone="Care">🤗 Care</button>
           </div>
-
-          <!-- 画面2: AI返信生成 -->
-          <div class="screen" id="s2">
-            <div class="s-header">
-              <div class="s-dot"></div>
-              <span class="s-title-text">✨ AI返信を考える</span>
-            </div>
-            <div class="s-tone-row">
-              <div class="s-tone active">💕 Sweet</div>
-              <div class="s-tone">😎 Cool</div>
-              <div class="s-tone">💼 Business</div>
-            </div>
-            <div class="s-card">
-              <div class="s-label">追記（任意）</div>
-              <div class="s-val">ドンペリのお礼を言いたい</div>
-            </div>
-            <div class="s-btn">返信を考える ✨</div>
-          </div>
-
-          <!-- 画面3: 生成中（ストリーミング） -->
-          <div class="screen" id="s3">
-            <div class="s-header">
-              <div class="s-dot" style="animation: blink2 0.8s infinite;"></div>
-              <span class="s-title-text">✍️ AIが生成中...</span>
-            </div>
-            <div class="s-stream-box" style="flex:1">
-              <div class="s-stream-label">案1 生成中...</div>
-              <div class="s-stream-text" id="stream-text"></div>
-            </div>
-            <div class="s-stream-box" style="opacity:0.4">
-              <div class="s-stream-label">案2 待機中...</div>
-            </div>
-          </div>
-
-          <!-- 画面4: 3案完成 -->
-          <div class="screen" id="s4">
-            <div class="s-header">
-              <div class="s-dot" style="background:#4ade80"></div>
-              <span class="s-title-text">✅ 3案できました！</span>
-            </div>
-            <div class="s-suggestion">
-              <div class="s-suggestion-text">昨日のドンペリ美味しかった🥂 田中さんがいるとやっぱり楽しいな💕 来週また会えたら嬉しいな</div>
-              <div class="s-copy-btn">📋 コピー</div>
-            </div>
-            <div class="s-suggestion">
-              <div class="s-suggestion-text">ドンペリのお礼言い忘れてた！田中さんのおかげで昨日最高の夜でした🌸 また来てほしいな〜</div>
-              <div class="s-copy-btn">📋 コピー</div>
-            </div>
-            <div class="s-suggestion">
-              <div class="s-suggestion-text">昨日ありがとうございました😊 田中さんとのお話、いつも楽しみにしています。またお会いできる日を♡</div>
-              <div class="s-copy-btn">📋 コピー</div>
-            </div>
-          </div>
-
         </div>
+
+        <!-- 入力欄 -->
+        <div class="demo-input-wrap">
+          <textarea
+            id="demo-context"
+            class="demo-textarea"
+            placeholder="例：昨日のドンペリのお礼を言いたい　/ 次回の来店を誘いたい　/ 久しぶりに連絡したい"
+            rows="3"
+          ></textarea>
+          <button id="demo-submit" class="demo-submit" disabled>✨ 返信案を作る</button>
+          <p class="demo-counter">今日あと <span id="demo-remaining">10</span> 回使えます（登録不要）</p>
+        </div>
+
+        <!-- 結果エリア -->
+        <div id="demo-results"></div>
+
       </div>
+
+      <div class="hero-cta-wrap"></div>
     </div>
+
   </section>
 
   <!-- ── デモ動画 ── -->
@@ -724,35 +739,128 @@
   </footer>
 
   <script>
-    // スマホモックアニメーション
-    const screens = ['s1','s2','s3','s4'];
-    let cur = 0;
-    const durations = [3000, 2500, 3500, 4000];
+    // ── デモチャット ───────────────────────────────────
+    const DEMO_API = 'https://aireply.aidbase11.workers.dev/api/ai/demo';
+    const LIMIT = 10;
+    let selectedTone = null;
 
-    function nextScreen() {
-      document.getElementById(screens[cur]).classList.remove('active');
-      cur = (cur + 1) % screens.length;
-      document.getElementById(screens[cur]).classList.add('active');
-      if (cur === 2) startStreaming();
-      setTimeout(nextScreen, durations[cur]);
+    // localStorage から残り回数を取得
+    function getRemaining() {
+      const today = new Date().toISOString().slice(0, 10);
+      const saved = JSON.parse(localStorage.getItem('demo_usage') || '{}');
+      if (saved.date !== today) return LIMIT;
+      return Math.max(0, LIMIT - (saved.count || 0));
+    }
+    function useOne() {
+      const today = new Date().toISOString().slice(0, 10);
+      const saved = JSON.parse(localStorage.getItem('demo_usage') || '{}');
+      const count = saved.date === today ? (saved.count || 0) + 1 : 1;
+      localStorage.setItem('demo_usage', JSON.stringify({ date: today, count }));
     }
 
-    // ストリーミングアニメ
-    const streamText = document.getElementById('stream-text');
-    const streamMsg = '昨日のドンペリ、美味しかったね🥂 田中さんがいるとやっぱり楽しいな💕 来週また…';
-    function startStreaming() {
-      streamText.textContent = '';
-      let i = 0;
-      const interval = setInterval(() => {
-        if (i < streamMsg.length) {
-          streamText.textContent += streamMsg[i++];
-        } else {
-          clearInterval(interval);
+    const remainingEl = document.getElementById('demo-remaining');
+    const submitBtn = document.getElementById('demo-submit');
+    const contextEl = document.getElementById('demo-context');
+    const resultsEl = document.getElementById('demo-results');
+
+    // 残り回数表示
+    remainingEl.textContent = getRemaining();
+    if (getRemaining() === 0) showLimitMsg();
+
+    // トーンボタン
+    document.querySelectorAll('.demo-tone-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        document.querySelectorAll('.demo-tone-btn').forEach(b => b.classList.remove('selected'));
+        btn.classList.add('selected');
+        selectedTone = btn.dataset.tone;
+        updateSubmit();
+      });
+    });
+
+    contextEl.addEventListener('input', updateSubmit);
+
+    function updateSubmit() {
+      submitBtn.disabled = !selectedTone || !contextEl.value.trim() || getRemaining() === 0;
+    }
+
+    submitBtn.addEventListener('click', async () => {
+      if (!selectedTone || !contextEl.value.trim()) return;
+      if (getRemaining() === 0) { showLimitMsg(); return; }
+
+      submitBtn.disabled = true;
+      submitBtn.textContent = 'AIが考えています... ✨';
+      resultsEl.innerHTML = '<div class="demo-loading">AIが返信案を作っています...</div>';
+
+      // GA4
+      window.dataLayer = window.dataLayer || [];
+      dataLayer.push({ event: 'demo_generate', tone: selectedTone });
+
+      try {
+        const res = await fetch(DEMO_API, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ tone: selectedTone, additional_context: contextEl.value.trim() }),
+        });
+        const data = await res.json();
+
+        if (res.status === 429 || data.error === 'limit_reached') {
+          showLimitMsg(); return;
         }
-      }, 45);
-    }
+        if (!res.ok) throw new Error(data.error || 'エラーが発生しました');
 
-    setTimeout(nextScreen, durations[0]);
+        useOne();
+        const remaining = getRemaining();
+        remainingEl.textContent = remaining;
+
+        // 結果表示
+        resultsEl.innerHTML = '';
+        (data.suggestions || []).forEach((text, i) => {
+          const card = document.createElement('div');
+          card.className = 'demo-result-card';
+          card.innerHTML = `
+            <p class="demo-result-text">${text.replace(/\n/g, '<br>')}</p>
+            <button class="demo-copy-btn" data-text="${text.replace(/"/g, '&quot;')}">📋 コピー</button>
+          `;
+          resultsEl.appendChild(card);
+        });
+
+        // コピーボタン
+        resultsEl.querySelectorAll('.demo-copy-btn').forEach(btn => {
+          btn.addEventListener('click', () => {
+            navigator.clipboard.writeText(btn.dataset.text);
+            btn.textContent = '✓ コピー済み';
+            setTimeout(() => { btn.textContent = '📋 コピー'; }, 2000);
+            dataLayer.push({ event: 'demo_copy', tone: selectedTone });
+          });
+        });
+
+        // 残り少なくなったら登録促進
+        if (remaining <= 2) {
+          const cta = document.createElement('div');
+          cta.className = 'demo-limit-msg';
+          cta.innerHTML = `<p>残り${remaining}回です。登録すると顧客カルテも使えてもっと精度が上がります✨</p>
+            <a href="/login" class="cta-btn" style="display:inline-flex;max-width:280px">🌸 無料で登録する</a>`;
+          resultsEl.appendChild(cta);
+        }
+        if (remaining === 0) showLimitMsg();
+
+      } catch (err) {
+        resultsEl.innerHTML = `<div class="demo-loading" style="color:#f87171">${err.message}</div>`;
+      } finally {
+        submitBtn.disabled = false;
+        submitBtn.textContent = '✨ 返信案を作る';
+        updateSubmit();
+      }
+    });
+
+    function showLimitMsg() {
+      submitBtn.disabled = true;
+      resultsEl.innerHTML = `
+        <div class="demo-limit-msg">
+          <p>本日の無料体験（10回）を使い切りました🌙<br>登録すると毎日使えます！</p>
+          <a href="/login" class="cta-btn" style="display:inline-flex;max-width:280px">🌸 無料で登録する（60秒）</a>
+        </div>`;
+    }
 
     // スクロールアニメ（IntersectionObserver）
     const animEls = document.querySelectorAll(
@@ -766,14 +874,15 @@
     }, { threshold: 0.1, rootMargin: '0px 0px -30px 0px' });
     animEls.forEach(el => io.observe(el));
 
-    // スティッキーCTA 表示制御
+    // スティッキーCTA 表示制御（デモボックスを基準に）
     const stickyCta = document.getElementById('sticky-cta');
-    const heroCta = document.querySelector('.hero-cta-wrap');
+    const demoBox = document.getElementById('demo-box');
     const finalCtaEl = document.querySelector('.final-cta');
     function updateSticky() {
-      const heroBottom = heroCta.getBoundingClientRect().bottom;
+      if (!demoBox || !finalCtaEl) return;
+      const demoBottom = demoBox.getBoundingClientRect().bottom;
       const finalTop = finalCtaEl.getBoundingClientRect().top;
-      stickyCta.classList.toggle('show', heroBottom < 0 && finalTop > window.innerHeight);
+      stickyCta.classList.toggle('show', demoBottom < 0 && finalTop > window.innerHeight);
     }
     window.addEventListener('scroll', updateSticky, { passive: true });
 
