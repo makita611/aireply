@@ -326,6 +326,20 @@
     .price-features li.muted { color: var(--gray); }
     .price-features li.muted::before { content: '–'; color: #ccc; }
 
+    /* ── 登録メリット ── */
+    .upgrade-section { background: linear-gradient(160deg, #fffdf7 0%, #fdf3d8 100%); }
+    .upgrade-cards { display: flex; flex-direction: column; gap: 16px; margin-top: 8px; }
+    .upgrade-card {
+      display: flex; align-items: flex-start; gap: 14px;
+      background: white; border-radius: var(--radius);
+      padding: 18px 16px;
+      border: 1px solid rgba(201,162,39,0.2);
+      box-shadow: 0 2px 12px rgba(201,162,39,0.07);
+    }
+    .upgrade-icon { font-size: 1.6rem; flex-shrink: 0; line-height: 1; margin-top: 2px; }
+    .upgrade-title { font-size: 0.95rem; font-weight: 900; color: var(--dark); margin-bottom: 5px; }
+    .upgrade-body { font-size: 0.82rem; color: var(--gray); line-height: 1.7; }
+
     /* ── デモ動画 ── */
     .video-section { background: var(--dark); }
     .video-section .section-label { color: var(--gold); }
@@ -456,6 +470,51 @@
       <div class="hero-cta-wrap"></div>
     </div>
 
+  </section>
+
+  <!-- ── 登録メリット ── -->
+  <section class="section upgrade-section">
+    <div class="section-inner">
+      <p class="section-label">登録するともっとできる</p>
+      <h2 class="section-title">今のは<em style="color:var(--gold-d)">ほんの一部</em>。<br>登録したら全部使える。</h2>
+      <p class="section-body" style="margin-bottom:24px">ゲストでも試せるけど、登録すると「あなた専用のAI秘書」になります。</p>
+
+      <div class="upgrade-cards">
+        <div class="upgrade-card">
+          <div class="upgrade-icon">📋</div>
+          <div>
+            <p class="upgrade-title">顧客カルテで返信精度が爆上がり</p>
+            <p class="upgrade-body">お客様のお酒の好み・NG話題・誕生日・前回の来店内容をカルテに記録。AIがそれを全部読んで、そのお客様だけへの返信を作ります。</p>
+          </div>
+        </div>
+        <div class="upgrade-card">
+          <div class="upgrade-icon">💬</div>
+          <div>
+            <p class="upgrade-title">自分の話し方・キャラに合わせる</p>
+            <p class="upgrade-body">語尾・口癖・キャラ設定を登録すると、AIがあなたらしい文章で書いてくれます。「絶対バレない」自然さに。</p>
+          </div>
+        </div>
+        <div class="upgrade-card">
+          <div class="upgrade-icon">👥</div>
+          <div>
+            <p class="upgrade-title">顧客管理で誰も落とさない</p>
+            <p class="upgrade-body">来店日順・温度感でお客様を管理。「久しぶりに来てほしい人」「今フォローすべき人」が一目でわかります。</p>
+          </div>
+        </div>
+        <div class="upgrade-card">
+          <div class="upgrade-icon">⚡</div>
+          <div>
+            <p class="upgrade-title">毎日使い放題（無料枠あり）</p>
+            <p class="upgrade-body">ゲストは1日10回まで。登録すると顧客3名まで完全無料で毎日使えます。制限なく使いたいならプランも。</p>
+          </div>
+        </div>
+      </div>
+
+      <div style="margin-top:28px">
+        <a href="/login" class="cta-btn">🌸 無料で登録する（60秒）</a>
+        <p class="cta-note">クレジットカード不要・いつでも退会OK</p>
+      </div>
+    </div>
   </section>
 
   <!-- ── デモ動画 ── -->
