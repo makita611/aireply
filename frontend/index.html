@@ -138,6 +138,17 @@
       cursor: pointer; transition: opacity 0.15s;
     }
     .demo-submit:disabled { opacity: 0.45; cursor: not-allowed; }
+    /* プリセット例ボタン */
+    .demo-presets { display: flex; flex-direction: column; gap: 6px; margin-bottom: 8px; }
+    .demo-preset-btn {
+      text-align: left; background: rgba(255,255,255,0.05);
+      border: 1px dashed rgba(201,162,39,0.35); border-radius: 10px;
+      color: rgba(255,255,255,0.55); font-size: 0.75rem; padding: 8px 12px;
+      cursor: pointer; transition: all 0.15s; font-family: inherit;
+      line-height: 1.5;
+    }
+    .demo-preset-btn:hover { background: rgba(201,162,39,0.1); color: var(--gold-l); border-color: var(--gold); }
+
     .demo-counter {
       text-align: center; font-size: 0.7rem;
       color: rgba(255,255,255,0.35);
@@ -452,11 +463,20 @@
 
         <!-- 入力欄 -->
         <div class="demo-input-wrap">
+          <p class="demo-tone-label" style="margin-bottom:8px">誰に・どんな状況・何をしてほしい？</p>
+
+          <!-- プリセット例ボタン -->
+          <div class="demo-presets" id="demo-presets">
+            <button class="demo-preset-btn" data-text="昨日来てくれた田中さん（ゴルフ好き・ドンペリ注文）に、お礼を言いつつ来週また来てほしい">📝 例①を試す</button>
+            <button class="demo-preset-btn" data-text="3週間ぶりに連絡してくる常連の鈴木さん。最近忙しそうだったから久しぶりに会いたいと伝えたい">📝 例②を試す</button>
+            <button class="demo-preset-btn" data-text="先月誕生日だった大事なお客様に、遅れたお祝いと近々会いたい気持ちを伝えたい">📝 例③を試す</button>
+          </div>
+
           <textarea
             id="demo-context"
             class="demo-textarea"
-            placeholder="例：昨日のドンペリのお礼を言いたい　/ 次回の来店を誘いたい　/ 久しぶりに連絡したい"
-            rows="3"
+            placeholder="例：昨日来てくれた田中さん（ゴルフ好き・ドンペリ注文）に、お礼を言いつつ来週また来てほしい"
+            rows="4"
           ></textarea>
           <button id="demo-submit" class="demo-submit" disabled>✨ 返信案を作る</button>
           <p class="demo-counter">今日あと <span id="demo-remaining">10</span> 回使えます（登録不要）</p>
@@ -837,6 +857,22 @@
     });
 
     contextEl.addEventListener('input', updateSubmit);
+
+    // プリセット例ボタン → テキストエリアに入力してトーンもセット
+    const presetTones = ['Sweet', 'Cool', 'Sweet']; // 例①②③に対応するデフォルトトーン
+    document.querySelectorAll('.demo-preset-btn').forEach((btn, i) => {
+      btn.addEventListener('click', () => {
+        contextEl.value = btn.dataset.text;
+        // 対応トーンを自動選択
+        const tone = presetTones[i];
+        document.querySelectorAll('.demo-tone-btn').forEach(b => {
+          b.classList.toggle('selected', b.dataset.tone === tone);
+        });
+        selectedTone = tone;
+        updateSubmit();
+        contextEl.focus();
+      });
+    });
 
     function updateSubmit() {
       submitBtn.disabled = !selectedTone || !contextEl.value.trim() || getRemaining() === 0;
