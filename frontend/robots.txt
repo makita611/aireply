@@ -1,0 +1,8 @@
+User-agent: *
+Allow: /
+Disallow: /dashboard.html
+Disallow: /customer.html
+Disallow: /settings.html
+Disallow: /feedback.html
+
+Sitemap: https://ai-rp.link/sitemap.xml
