@@ -75,6 +75,7 @@
     @media (min-width: 768px) {
       .lp-nav { display: flex; align-items: center; gap: 24px; }
       .lp-menu-btn { display: none; }
+      .lp-header-right > .lp-header-cta { display: none; }
     }
 
     /* ── セクション共通 ── */
@@ -533,15 +534,16 @@
     <div class="lp-brand">アイリプ</div>
     <div class="lp-header-right">
       <nav class="lp-nav">
-        <a href="/column/01-honeymoon-line">コラム</a>
+        <a href="/column/">コラム</a>
         <a href="/login" class="lp-header-cta">無料で始める</a>
       </nav>
+      <a href="/login" class="lp-header-cta">無料で始める</a>
       <button class="lp-menu-btn" id="lp-menu-btn" aria-label="メニュー"><span></span><span></span><span></span></button>
     </div>
   </header>
   <div class="lp-mobile-menu" id="lp-mobile-menu">
-    <a href="/column/01-honeymoon-line">コラム</a>
-    <a href="/login">ログイン / 無料で始める</a>
+    <a href="/column/">コラム</a>
+    <a href="/login">ログイン</a>
   </div>
 
   <!-- ── HERO（チャットUI first） ── -->

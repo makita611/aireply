@@ -25,6 +25,11 @@
     <priority>0.3</priority>
   </url>
   <url>
+    <loc>https://ai-rp.link/column/</loc>
+    <changefreq>weekly</changefreq>
+    <priority>0.7</priority>
+  </url>
+  <url>
     <loc>https://ai-rp.link/column/01-honeymoon-line.html</loc>
     <changefreq>monthly</changefreq>
     <priority>0.6</priority>
