@@ -53,6 +53,29 @@
       color: var(--white); font-weight: 700; font-size: 0.82rem;
       padding: 8px 18px; border-radius: 50px; white-space: nowrap;
     }
+    .lp-header-right { display: flex; align-items: center; gap: 18px; }
+    .lp-nav { display: none; }
+    .lp-nav a { font-size: 0.88rem; font-weight: 700; color: var(--dark); }
+    .lp-menu-btn {
+      display: flex; flex-direction: column; justify-content: center; gap: 4px;
+      width: 28px; height: 28px; padding: 0; background: none; border: none; cursor: pointer;
+    }
+    .lp-menu-btn span { display: block; width: 100%; height: 2px; background: var(--gold-d); border-radius: 2px; }
+    .lp-mobile-menu {
+      position: fixed; top: 56px; right: 16px; z-index: 99;
+      background: var(--white); border-radius: var(--radius);
+      box-shadow: 0 8px 32px rgba(0,0,0,0.12);
+      padding: 8px; display: none; flex-direction: column; min-width: 160px;
+    }
+    .lp-mobile-menu.open { display: flex; }
+    .lp-mobile-menu a {
+      padding: 12px 14px; font-size: 0.9rem; font-weight: 700; color: var(--dark); border-radius: 10px;
+    }
+    .lp-mobile-menu a:active { background: var(--light); }
+    @media (min-width: 768px) {
+      .lp-nav { display: flex; align-items: center; gap: 24px; }
+      .lp-menu-btn { display: none; }
+    }
 
     /* ── セクション共通 ── */
     .section { padding: 72px 20px; }
@@ -508,8 +531,18 @@
   <!-- ヘッダー -->
   <header class="lp-header">
     <div class="lp-brand">アイリプ</div>
-    <a href="/login" class="lp-header-cta">無料で始める</a>
+    <div class="lp-header-right">
+      <nav class="lp-nav">
+        <a href="/column/01-honeymoon-line">コラム</a>
+        <a href="/login" class="lp-header-cta">無料で始める</a>
+      </nav>
+      <button class="lp-menu-btn" id="lp-menu-btn" aria-label="メニュー"><span></span><span></span><span></span></button>
+    </div>
   </header>
+  <div class="lp-mobile-menu" id="lp-mobile-menu">
+    <a href="/column/01-honeymoon-line">コラム</a>
+    <a href="/login">ログイン / 無料で始める</a>
+  </div>
 
   <!-- ── HERO（チャットUI first） ── -->
   <section class="hero">
@@ -887,6 +920,7 @@
       <a href="/column/01-honeymoon-line">コラム</a>
       <a href="/notice">お知らせ・ご要望</a>
       <a href="/privacy">プライバシーポリシー</a>
+      <a href="/law">特定商取引法に基づく表記</a>
     </p>
     <p style="margin-top:8px">© 2026 アイリプ</p>
   </footer>
@@ -1082,6 +1116,14 @@
         tapHint.style.opacity = '1';
       });
     }
+
+    // ハンバーガーメニュー
+    const menuBtn = document.getElementById('lp-menu-btn');
+    const mobileMenu = document.getElementById('lp-mobile-menu');
+    menuBtn.addEventListener('click', () => mobileMenu.classList.toggle('open'));
+    document.addEventListener('click', (e) => {
+      if (!mobileMenu.contains(e.target) && !menuBtn.contains(e.target)) mobileMenu.classList.remove('open');
+    });
 
     // GA4 CTAクリック（GTM dataLayer経由）
     document.querySelectorAll('.cta-btn, .lp-header-cta').forEach(btn => {
